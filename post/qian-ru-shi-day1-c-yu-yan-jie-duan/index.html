@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>嵌入式day1——C语言阶段 | HM&amp;TPJ遇风</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://Hmtpj.github.io/favicon.ico?v=1762958248406">
+<link rel="stylesheet" href="https://Hmtpj.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="戒骄戒躁：C入门，51和基础硬件知识铺垫，STM32和RTOS深入，再分层技术路线由深入浅：先学linux应用开发-》linux底层固件或者驱动开发，进阶就是FPGA开发资源较少。还有就是硬件开发可以慢慢补充。
+
+[TOC]
+
+最近还在忙着..." />
+    <meta name="keywords" content="技术" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://Hmtpj.github.io">
+        <img src="https://Hmtpj.github.io/images/avatar.png?v=1762958248406" class="site-logo">
+        <h1 class="site-title">HM&amp;TPJ遇风</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/Hmtpj/Hmtpj.github.io" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      学习啦
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://Hmtpj.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">嵌入式day1——C语言阶段</h2>
+            <div class="post-date">2025-11-07</div>
+            
+              <div class="feature-container" style="background-image: url('https://Hmtpj.github.io/post-images/qian-ru-shi-day1-c-yu-yan-jie-duan.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>戒骄戒躁：C入门，51和基础硬件知识铺垫，STM32和RTOS深入，再分层技术路线由深入浅：先学linux应用开发-》linux底层固件或者驱动开发，进阶就是FPGA开发资源较少。还有就是硬件开发可以慢慢补充。</p>
+<!-- more -->
+<p>[TOC]</p>
+<blockquote>
+<p>最近还在忙着跑实验写文章，只能抽着时间学学，快速过C语言基础的内容，<strong>此处整理C遗忘知识点。</strong></p>
+</blockquote>
+<h2 id="第-1-章-常量">第 1 章 常量</h2>
+<h3 id="11-常量的概念">1.1 常量的概念</h3>
+<pre><code>程序运行时，其值不能改变的量，即为常量。
+</code></pre>
+<h3 id="12-常量的分类">1.2 常量的分类</h3>
+<pre><code>字面量常量
+标识符常量
+</code></pre>
+<h3 id="13-标识符常量的定义方法">1.3 标识符常量的定义方法</h3>
+<h4 id="第一种方式-宏定义方式">第一种方式 宏定义方式</h4>
+<pre><code class="language-c">#define 常量名 值
+</code></pre>
+<blockquote>
+<p>注意：不能加分号！！！</p>
+</blockquote>
+<h4 id="第二种方式-const-关键字方式">第二种方式 const 关键字方式</h4>
+<pre><code class="language-c">const 数据类型 常量名 = 值;
+数据类型 const  常量名 = 值;
+</code></pre>
+<h4 id="两种方式的区别">两种方式的区别</h4>
+<p>**宏定义纯文本性质：**宏定义只是简单的文本替换，如#define MAX 1000会被直接替换为1000，不关心数据类型</p>
+<p><strong>宏定义调试困难：<strong>因为</strong>预处理阶段就已替换，调试时无法追踪原始宏名</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://Hmtpj.github.io/post-images/1762510291616.png" alt="" loading="lazy"></figure>
+<pre><code>1. 类型检查 
+   #define 方式不能进行类型检查 
+   const 关键字方式可进行编译期类型检查
+2. 执行时机不同
+   #define 方式在预处理阶段进行文本替换，预处理后即不存在内存实体
+   const 关键字方式，在程序执行的时候，在内存中分配空间
+</code></pre>
+<h2 id="第-2-章-原码-反码-补码">第 2 章 原码、反码、补码</h2>
+<figure data-type="image" tabindex="2"><img src="https://Hmtpj.github.io/post-images/1762510940915.png" alt="" loading="lazy"></figure>
+<pre><code>机器数：机器真实存储的二进制表示
+形式值：不考虑符号位
+真值：把最高位当符号位
+
+</code></pre>
+<pre><code>1.原码
+表示规则：与机器数真值表示相同，第一位表示符号，其余位表示数值
+正数规则：直接对应二进制数（如+1原码为00000001）
+负数规则：绝对值对应二进制数且最高位变1（如-1原码为10000001）
+零的表示：原码仍为0
+位数约定：需预先确定使用的二进制位数（常用8/16/32/64位）
+2.反码
+正数规则：与原码相同（+1反码仍为00000001）
+零的表示：反码仍为0
+负数规则：
+符号位保持不变
+其余各位取反（如-1原码10000001→反码11111110）
+设计目的：为补码计算服务，本身无独立应用价值
+3.补码
+正数规则：与原码、反码相同（三码合一）
+零的表示：补码仍为0
+负数规则：在反码基础上加1（如-1反码11111110→补码11111111）
+核心特性：计算机内部实际存储整数的方式（特别是负数）
+表示范围：以8位为例，有符号数范围为-128到127
+</code></pre>
+<p>补码计算器：https://www.lddgo.net/convert/number-binary-code</p>
+<h3 id="21-计算机为什么使用补码">2.1 计算机为什么使用补码</h3>
+<p>1、计算角度分析</p>
+<ul>
+<li>
+<p>核心问题：原码运算会导致符号位干扰</p>
+<ul>
+<li>例：2+(-2)用8位原码计算：
+<ul>
+<li>2（原码）=00000010</li>
+<li>-2（原码）=10000010</li>
+<li>相加得10000100（对应十进制-4，错误结果）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>补码优势：</p>
+<ul>
+<li>
+<p>统一加减法运算：减法转为加负数（</p>
+<p>2−2=2+(−2)</p>
+</li>
+<li>
+<p>正确性验证：</p>
+<ul>
+<li>2_{补码}=00000010</li>
+<li>-2_{补码}=11111110</li>
+<li>相加得00000000（<strong>溢出位舍弃，结果正确</strong>）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>硬件设计：</p>
+<ul>
+<li>算术逻辑单元(ALU)仅需加法器</li>
+<li>乘法/除法可通过加法迭代实现</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://Hmtpj.github.io/post-images/1762511014744.png" alt="" loading="lazy"><br>
+<strong>特殊值：1000表示-8，既保证0的唯一性又节省硬件资源</strong></p>
+<p>排列规律：</p>
+<ul>
+<li><strong>全1组合：有符号时为-1，无符号时为最大正数（4位时为15）</strong></li>
+<li>负数补码值必然大于正数补码值（因占用高位组合）</li>
+</ul>
+<p>2、存储角度分析</p>
+<ul>
+<li>表示范围优化：
+<ul>
+<li>4位二进制示例：
+<ul>
+<li>无符号数：0~15</li>
+<li>有符号补码：-8~7</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>编码效率：
+<ul>
+<li>补码消除+0/-0歧义（原码中0000和1000都表示0）</li>
+<li>连续编码：负数补码比原码大1（如-1补码为1111，原码为1001）</li>
+</ul>
+</li>
+</ul>
+<h3 id="浮点数存储原理">浮点数存储原理</h3>
+<p>根据<a href="https://standards.ieee.org/ieee/754/6210/">IEEE754</a>标准，浮点数在计算机内部分成符号S、指数E、尾数M三部分，分别以二进制的形式进行存储，其中S取0或者1（0表示正数，1表示负数），M要求大于等于1且小于10。如数字 120.45 用科学计数法表示是 1.2045*10^2，所以，S=0，E=2，M=1.2045。</p>
+<p>float 类型是32位浮点数，最高的1位是符号位S，接着用8位表示指数E，剩下的23位表示尾数M。</p>
+<figure data-type="image" tabindex="3"><img src="https://Hmtpj.github.io/post-images/1762511055376.png" alt="" loading="lazy"></figure>
+<p>double 类型是64位浮点数，最高的1位是符号位S，接着用11位表示指数E，剩下的52位表示尾数M。</p>
+<h2 id="第-3-章-数据类型和运算符">第 3 章 数据类型和运算符</h2>
+<h3 id="31-获取数据的存储大小">3.1 获取数据的存储大小</h3>
+<p><code>使用sizeof </code>可以获取数据类型或变量、字面量的存储大小，单位是字节。sizeof返回一个size_t类型的无符号整数值，格式占位符是 %zu。</p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+int main()
+{
+    // 计算数据类型的大小, 必须使用括号将数据类型关键字包裹起来
+    printf(&quot;char：%zu \n&quot;, sizeof(char));               // char：1
+    printf(&quot;short：%zu \n&quot;, sizeof(short));             // short：2
+    printf(&quot;int：%zu \n&quot;, sizeof(int));                 // int：4
+    printf(&quot;long：%zu \n&quot;, sizeof(long));               // long：4
+    printf(&quot;long long：%zu \n&quot;, sizeof(long long));     // long long：8
+    printf(&quot;float：%zu \n&quot;, sizeof(float));             // float：4
+    printf(&quot;double：%zu \n&quot;, sizeof(double));           // double：8
+    printf(&quot;long double：%zu \n&quot;, sizeof(long double)); // long double：16
+    printf(&quot;\n&quot;);
+
+    // 计算字面量数据的大小，字面量可以省略括号
+    printf(&quot;%zu \n&quot;, sizeof('a')); // 4，在 C 语言中，字符常量（如 'a'）的类型是 int，而不是 char
+    printf(&quot;%zu \n&quot;, sizeof(431)); // 4
+    printf(&quot;%zu \n&quot;, sizeof 4.31); // 8
+    printf(&quot;\n&quot;);
+
+    // 计算变量的大小，变量可以省略括号
+    char a = 'A';
+    int b = 90;
+    long long c = 100;
+    double d = 10.8;
+    printf(&quot;a: %zu \n&quot;, sizeof(a)); // a: 1
+    printf(&quot;b: %zu \n&quot;, sizeof b);  // b: 4
+    printf(&quot;c: %zu \n&quot;, sizeof(c)); // c: 8
+    printf(&quot;d: %zu \n&quot;, sizeof(d)); // d: 8
+
+    return 0;
+}
+
+</code></pre>
+<h3 id="32-数据类型转换">3.2 数据类型转换</h3>
+<h4 id="自动类型转换隐式转换">自动类型转换（隐式转换）</h4>
+<p>1、转换规则</p>
+<p>（1）不同类型整数进行运算，窄类型整数自动转换为宽类型整数，<strong>有符号整数转换为无符号整数</strong>。</p>
+<p>（2）不同类型浮点数进行运算，精度小的类型自动转换为精度大的类型。</p>
+<p>（3）整数与浮点数进行运算，整数自动转换为浮点数。</p>
+<p>2、赋值过程中的自动类型转换</p>
+<p>在赋值运算中，赋值号两边量的数据类型不同时，等号右边的类型将转换为左边的类型。<br>
+如果窄类型赋值给宽类型，不会造成精度损失；如果宽类型赋值给窄类型，会造成精度损失。</p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+int main()
+{
+    // 赋值 窄类型赋值给宽类型
+    int a1 = 10;
+    double a2 = a1;
+    printf(&quot;%f \n&quot;, a2);
+
+    // 赋值 宽类型赋值给窄类型
+    double b1 = 1.2;
+    int b2 = b1;
+    printf(&quot;%d&quot;, b2);
+
+    return 0;
+}
+输出结果：
+10.000000
+1
+</code></pre>
+<h3 id="33-强制类型转换显式转换">3.3 强制类型转换（显式转换）</h3>
+<p>1）转换格式</p>
+<p>（类型名）变量、常量或表达式</p>
+<h3 id="34-数据类型转换">3.4 数据类型转换</h3>
+<p>1、取模（取余）</p>
+<p><code>a % b</code> 的结果 <strong>符号永远与被除数（a）一致</strong></p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+int main()
+{
+    int res1 = 10 % 3;
+    printf(&quot;%d\n&quot;, res1);
+
+    int res2 = -10 % 3;
+    printf(&quot;%d\n&quot;, res2);
+
+    int res3 = 10 % -3;
+    printf(&quot;%d\n&quot;, res3);
+
+    int res4 = -10 % -3;
+    printf(&quot;%d\n&quot;, res4);
+
+    return 0;
+}
+输出结果：
+1
+-1
+1
+-1
+</code></pre>
+<p><strong>注意：</strong></p>
+<p>（1）取模运算符的操作数必须是整数。</p>
+<p>（2）运算结果的符号与被模数也就是第一个操作数相同。</p>
+<p>2、自增和自减</p>
+<p>自增、自减运算符在前在后，对于表达式的值是不同的。<br>
+<strong>如果运算符在前，表达式的值是操作数自增、自减之后的值；如果运算符在后，表达式的值是操作数自增、自减之前的值。</strong></p>
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    int i1 = 10, i2 = 20;
+    int i = i1++;
+    printf(&quot;%d\n&quot;, i);  // 10
+    printf(&quot;%d\n&quot;, i1); // 11
+
+    i = ++i1;
+    printf(&quot;%d\n&quot;, i);  // 12
+    printf(&quot;%d\n&quot;, i1); // 12
+
+    i = i2--;
+    printf(&quot;%d\n&quot;, i);  // 20
+    printf(&quot;%d\n&quot;, i2); // 19
+
+    i = --i2;
+    printf(&quot;%d\n&quot;, i);  // 18
+    printf(&quot;%d\n&quot;, i2); // 18
+
+    return 0;
+}
+
+</code></pre>
+<h3 id="35-逻辑运算符">3.5 逻辑运算符</h3>
+<p>1）逻辑与 &amp;&amp;</p>
+<p>（1）如果两个操作数都为真（非零），那么表达式的值为真，否则为假。</p>
+<p>（2）如果第一个操作数为假，第二个操作数没有计算的必要了，这种现象称为短路现象。</p>
+<p>2）逻辑或 ||</p>
+<p>（1）只要有一个操作数为真，表达式的值就为真；两个操作数都为假，表达式的值为假。</p>
+<p>（2）如果第一个操作数为真，第二个操作数没有计算的必要了，这种现象称为短路现象。</p>
+<h3 id="36-位运算符">3.6  位运算符</h3>
+<table>
+<thead>
+<tr>
+<th><strong>运算符</strong></th>
+<th><strong>描述</strong></th>
+<th><strong>操作数个数</strong></th>
+<th><strong>副作用</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>&amp;</strong></td>
+<td>按位与</td>
+<td>2</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>|</strong></td>
+<td>按位或</td>
+<td>2</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>^</strong></td>
+<td>按位异或</td>
+<td>2</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>~</strong></td>
+<td>按位取反</td>
+<td>1</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>&lt;&lt;</strong></td>
+<td>按位左移</td>
+<td>2</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>&gt;&gt;</strong></td>
+<td>按位右移</td>
+<td>2</td>
+<td>无</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意：操作数进行位运算的时候，以它的补码形式进行运算。</strong></p>
+<p><strong>1）按位与、按位或、按位异或</strong></p>
+<pre><code>#include &lt;stdio.h&gt;
+int main()
+{
+    int a = 17;
+    int b = -12;
+
+    printf(&quot;a&amp;b=%d\n&quot;, a &amp; b); // a&amp;b=16
+    printf(&quot;a|b=%d\n&quot;, a | b); // a|b=-11
+    printf(&quot;a^b=%d\n&quot;, a ^ b); // a^b=-27
+
+    return 0;
+}
+输出结果：
+a&amp;b=16
+a|b=-11
+a^b=-27
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://Hmtpj.github.io/post-images/1762511093497.png" alt="" loading="lazy"></figure>
+<p><strong>2）按位取反</strong></p>
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    int a = 17;
+    int b = -12;
+
+    // 按位非
+    printf(&quot;~a=%d\n&quot;, ~a); 
+    printf(&quot;~b=%d\n&quot;, ~b); 
+
+    return 0;
+}
+输出结果：
+~a=-18
+~b=11
+
+</code></pre>
+<figure data-type="image" tabindex="5"><img src="https://Hmtpj.github.io/post-images/1762511115977.png" alt="" loading="lazy"></figure>
+<p><strong>3）按位左移、按位右移</strong></p>
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    int a = 17;
+    int b = -12;
+
+    // 按位左移
+    printf(&quot;a&lt;&lt;2=%d\n&quot;, a &lt;&lt; 2); // a&lt;&lt;2=68
+    printf(&quot;b&lt;&lt;2=%d\n&quot;, b &lt;&lt; 2); // b&lt;&lt;2=-48
+
+    // 按位右移
+    printf(&quot;a&gt;&gt;3=%d\n&quot;, a &gt;&gt; 3); // a&gt;&gt;3=2
+    printf(&quot;b&gt;&gt;3=%d\n&quot;, b &gt;&gt; 3); // b&gt;&gt;3=-2
+
+    return 0;
+}
+</code></pre>
+<figure data-type="image" tabindex="6"><img src="https://Hmtpj.github.io/post-images/1762511129347.png" alt="" loading="lazy"></figure>
+<h3 id="37-三元运算符">3.7 三元运算符</h3>
+<p>1）基本语法</p>
+<p>条件表达式? 表达式1: 表达式2；</p>
+<p>2）表达式最终取值</p>
+<p>（1）如果条件表达式为非0（真），整个表达式的值是表达式1；</p>
+<p>（2）如果条件表达式为0（假），整个表达式的值是表达式2；</p>
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    int a = 10;
+    int b = 99;
+    int res = a &gt; b ? a++ : b--;
+    int n1 = a &gt; b ? 1.1 : 1.2;
+
+    printf(&quot;a=%d \n&quot;, a);
+    printf(&quot;b=%d \n&quot;, b);
+    printf(&quot;res=%d \n&quot;, res);
+
+    return 0;
+}
+输出结果：
+a=10 
+b=98 
+res=99
+
+计算三个数的最大值：
+int max=(a&gt;b? a:b)&gt;C? (a&gt;b? a:b):c
+</code></pre>
+<h2 id="第-4-章-程序控制语句">第 4 章 程序控制语句</h2>
+<h3 id="41-多向分支switch">4.1 多向分支switch</h3>
+<pre><code>switch (表达式)
+{
+    case 常量值1:
+       语句块1;
+        break;
+    case 常量值2:
+       语句块2;
+        break;
+    case 常量值n:
+        语句块n;
+        break;
+    default:
+       语句块n + 1;
+}
+</code></pre>
+<p>说明：</p>
+<p>（1）switch后面表达式的值必须是一个整型（char、short, int, long等）或枚举类型。</p>
+<p>（2）<strong>case后面的值必须是常量</strong>，而不能是变量。</p>
+<p>（3）default是可选的，当没有匹配的case时，执行default。</p>
+<p>（4）break语句可以使程序跳出switch语句块，如果没有break，会执行下一个case 语句块，直到遇到break或者执行到switch结尾，这个现象称为穿透。</p>
+<pre><code class="language-C">//编写程序，输入月份，输出该月份有多少天。
+//说明：1月、3月、5月、7月、8月、10月、12月有31天，4月、6月、9月、11月有30天，2月有28 天或 29天。
+#include &lt;stdio.h&gt;
+
+int main()
+{
+    // 定义变量记录月份
+    int month;
+    printf(&quot;请输入月份：&quot;);
+    scanf(&quot;%d&quot;, &amp;month);
+
+    // 进行 switch 判断
+    switch (month)
+    {
+    case 1:
+    case 3:
+    case 5:
+    case 7:
+    case 8:
+    case 10:
+    case 12:
+        printf(&quot;%d 月有 31 天！&quot;, month);
+        break;
+    case 4:
+    case 6:
+    case 9:
+    case 11:
+        printf(&quot;%d 月有 30 天！&quot;, month);
+        break;
+    case 2:
+        printf(&quot;%d 月有 28 天或 29 天！&quot;, month);
+    default:
+        printf(&quot;请输入正确的月份！&quot;);
+    }
+
+    return 0;
+}
+</code></pre>
+<h3 id="42-跳转控制语句">4.2  跳转控制语句</h3>
+<p>1、 break</p>
+<p>break语句用于终止某个语句块的执行，用在<strong>switch语句或者循环语句</strong>中。</p>
+<p>2、goto 语句</p>
+<p><code>goto</code>语句是一种跳转语句，它允许程序控制流程在代码中跳转到带有标签（label）的语句处，标签（label）的名称可以自行设置，需要满足标识符规范。</p>
+<p>注意，我们在开发中不建议使用goto语句，但我们需要掌握 goto 语句的执行流程，以能够看懂其他开发者的代码中可能出现的 goto 语句。</p>
+<p>1）基本语法</p>
+<pre><code>//goto 标签名  // 跳转到指定的标签（label）处
+//...
+//标签名:      // 定义一个标签（label）
+//
+//语句;
+#include &lt;stdio.h&gt;
+
+int main()
+{
+    printf(&quot;start \n&quot;);
+    goto label1; // label1是标签名
+
+    printf(&quot;ok1 \n&quot;);
+    printf(&quot;ok2 \n&quot;);
+label1:
+    printf(&quot;ok3 \n&quot;);
+    printf(&quot;ok4 \n&quot;);
+
+    return 0;
+}
+输出结果：
+start 
+ok3
+ok4
+</code></pre>
+<p>注意：goto 后面如果引用了没有定义的标签，编译器会报错！</p>
+<h2 id="附录">附录</h2>
+<p>常用格式占位符速查表</p>
+<p>（1）整数</p>
+<table>
+<thead>
+<tr>
+<th><strong>格式占位符</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>对应类型</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>%d</strong></td>
+<td>十进制有符号整数</td>
+<td>int</td>
+</tr>
+<tr>
+<td><strong>%u</strong></td>
+<td>十进制无符号整数</td>
+<td>unsigned int</td>
+</tr>
+<tr>
+<td><strong>%hd</strong></td>
+<td>十进制有符号整数</td>
+<td>short</td>
+</tr>
+<tr>
+<td><strong>%hu</strong></td>
+<td>十进制无符号整数</td>
+<td>unsigned short</td>
+</tr>
+<tr>
+<td><strong>%ld</strong></td>
+<td>十进制有符号整数</td>
+<td>long</td>
+</tr>
+<tr>
+<td><strong>%lu</strong></td>
+<td>十进制无符号整数</td>
+<td>unsigned long</td>
+</tr>
+<tr>
+<td><strong>%lld</strong></td>
+<td>十进制有符号整数</td>
+<td>long long</td>
+</tr>
+<tr>
+<td><strong>%llu</strong></td>
+<td>十进制无符号整数</td>
+<td>unsigned long long</td>
+</tr>
+<tr>
+<td><strong>%x</strong>**、%X**</td>
+<td>十六进制无符号整数</td>
+<td>unsigned int</td>
+</tr>
+<tr>
+<td><strong>%#x</strong></td>
+<td>显示前缀 0x 的十六进制整数,用于输出。</td>
+<td>unsigned int</td>
+</tr>
+<tr>
+<td><strong>%#X</strong></td>
+<td>显示前缀 0X 的十六进制整数，用于输出。</td>
+<td>unsigned int</td>
+</tr>
+<tr>
+<td><strong>%zu</strong></td>
+<td>输出数据的字节长度</td>
+<td>size_t</td>
+</tr>
+</tbody>
+</table>
+<p>（2）浮点</p>
+<table>
+<thead>
+<tr>
+<th><strong>格式占位符</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>对应类型</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>%f</strong></td>
+<td>浮点数的常规表示</td>
+<td>float、double</td>
+</tr>
+<tr>
+<td><strong>%lf</strong></td>
+<td>浮点数的常规表示</td>
+<td>double</td>
+</tr>
+<tr>
+<td><strong>%Lf</strong></td>
+<td>浮点数的常规表示</td>
+<td>long double</td>
+</tr>
+<tr>
+<td><strong>%e</strong></td>
+<td>浮点数的科学计数法表示</td>
+<td>double、float</td>
+</tr>
+<tr>
+<td><strong>%le</strong></td>
+<td>浮点数的科学计数法表示</td>
+<td>double</td>
+</tr>
+<tr>
+<td><strong>%Le</strong></td>
+<td>浮点数的科学计数法表示</td>
+<td>long double</td>
+</tr>
+</tbody>
+</table>
+<p>（3）字符和字符串</p>
+<table>
+<thead>
+<tr>
+<th><strong>格式占位符</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>对应类型</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>%c</strong></td>
+<td>字符</td>
+<td>char</td>
+</tr>
+<tr>
+<td><strong>%s</strong></td>
+<td>字符串</td>
+<td>char *、char[]</td>
+</tr>
+</tbody>
+</table>
+<p>（4）其他</p>
+<table>
+<thead>
+<tr>
+<th><strong>格式占位符</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>对应类型</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>%p</strong></td>
+<td>输出地址，通常以十六进制表示</td>
+<td>void *</td>
+</tr>
+</tbody>
+</table>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://Hmtpj.github.io/tag/B5mSxLV9AN/" class="tag">
+                    技术
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://Hmtpj.github.io/post/qian-ru-shi-xue-xi-chu-ji-ji-hua/">
+                  <h3 class="post-title">
+                    嵌入式学习初级计划
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,1869 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://Hmtpj.github.io</id>
+    <title>HM&amp;TPJ遇风</title>
+    <updated>2025-11-12T14:40:44.193Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://Hmtpj.github.io"/>
+    <link rel="self" href="https://Hmtpj.github.io/atom.xml"/>
+    <subtitle>学习啦</subtitle>
+    <logo>https://Hmtpj.github.io/images/avatar.png</logo>
+    <icon>https://Hmtpj.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2025, HM&amp;TPJ遇风</rights>
+    <entry>
+        <title type="html"><![CDATA[嵌入式day2——C语言高级1]]></title>
+        <id>https://Hmtpj.github.io/post/qian-ru-shi-day2-c-yu-yan-gao-ji-1/</id>
+        <link href="https://Hmtpj.github.io/post/qian-ru-shi-day2-c-yu-yan-gao-ji-1/">
+        </link>
+        <updated>2025-11-12T14:33:44.000Z</updated>
+        <summary type="html"><![CDATA[<p>记录包含数组，函数遗忘知识点！</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>记录包含数组，函数遗忘知识点！</p>
+<!-- more -->
+<blockquote>
+<p>记录自己遗忘的C语言知识点，下面的出现的“练习题”字样，记录的是容易出错的。等C结束后面会刷一些嵌入式力扣和数据结构，记录一些容易出错的题。</p>
+</blockquote>
+<p>[TOC]</p>
+<h2 id="一-数组">一、数组</h2>
+<h3 id="1-数组的定义">1、数组的定义</h3>
+<pre><code>1）方式一：先指定元素的个数和类型，再进行初始化
+// 定义数组，数组名字是 arr1，元素类型是 int，元素个数是 3 个  
+int arr1[3];
+
+// 定义完成后再给元素赋值
+arr1[0] = 100;
+arr1[1] = 200;
+arr1[2] = 300;
+2）方式二：指定元素的类型和个数并同时进行初始化
+// 定义完数组直接进行初始化
+int arr2[3] = {4,5,6};
+3）方式三：指定元素的类型，不指定元素个数，同时进行初始化
+// 没有指定元素个数，系统会自动计算
+int arr3[] = {7,8,9,10};
+</code></pre>
+<h3 id="2-计算数组长度">2、计算数组长度</h3>
+<p>使用sizeof运算符计算出整个数组的字节长度。</p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+int main()
+{
+    // 定义数组 没有指定长度
+    int nums[] = {10, 20, 30, 40, 50, 60, 70};
+
+    // 计算数组总的字节长度
+    int arrByteLen = sizeof nums;
+
+    // 用总字节长度除以单个元素的字节长度
+    int arrLen = arrByteLen / sizeof nums[0];
+
+    printf(&quot;数组的长度：%d&quot;, arrLen); // 数组的长度：7
+
+    return 0;
+}
+//输出结果：
+//数组的长度：7
+</code></pre>
+<h3 id="3-字符数组">3、字符数组</h3>
+<p><img src="https://Hmtpj.github.io/post-images/1762958133932.png" alt="" loading="lazy"><br>
+字符串结尾，会自动添加一个<code>\0</code> 作为字符串结束的标志，所以字符数组最后一个元素必须是 \0。</p>
+<p>\0 是ASCII码表中的第0个字符，用NUL表示，称为空字符，<strong>该字符既不能显示，也不是控制字符，输出该字符不会有任何效果，它在C语言中仅作为字符串的结束标志</strong>。</p>
+<h4 id="31-字符数组字符串的定义">3.1 字符数组（字符串）的定义</h4>
+<pre><code>1）方式一：最后一个元素设置成 \0
+在给某个字符数组赋值时，赋值的元素个数小于字符数组的长度，则会自动在后面加 '\0', 表示字符串结束； 赋值的元素的个数等于该数组的长度（或不指定数组长度），则不会自动添加 '\0'。
+#include &lt;stdio.h&gt;
+
+int main()
+{
+    char str1[12] = {'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '\0'}; // 显式地设值 \0
+    char str2[4] = {'t', 'o', 'm'};     // 后面自动添加 \0
+    char str3[] = {'j', 'a', 'c', 'k'}; // 不会自动添加 \0
+
+    printf(&quot;str1=%s \n&quot;, str1); 
+    printf(&quot;str2=%s \n&quot;, str2); 
+    printf(&quot;str3=%s \n&quot;, str3); // 由于没有结束标识，会包括相邻内存的数据，直到遇到结束标记
+
+    return 0;
+}
+输出结果：
+str1=Hello World 
+str2=tom
+str3=jacktom
+2）方式二：简化写法
+#include &lt;stdio.h&gt;
+
+int main()
+{
+    char str1[] = {&quot;I am happy&quot;}; // 后面自动添加 \0
+    char str2[] = &quot;I am happy&quot;;   // 省略{}号,后面自动添加 \0
+
+    printf(&quot;\n str1=%s&quot;, str1);
+    printf(&quot;\n str2=%s&quot;, str2);
+
+    return 0;
+}
+输出结果：
+str1=I am happy
+str2=I am happy
+</code></pre>
+<h4 id="31-字符串的访问和遍历">3.1 字符串的访问和遍历</h4>
+<p>sizeof： 字符串的内存存储大小就是字符串的长度，字符串的每个元素都是1字节（包含结束标记）<br>
+<strong>strlen()</strong>:  位于标准库头文件 <strong>&lt;string.h&gt;</strong> 中， 从第一个字符开始计数一直到字符串结束标记（不包括结束标记）</p>
+<pre><code class="language-C">// 定义字符串
+char greeting[] = &quot;Hello&quot;;
+char str2[4] = {'t', 'o', 'm'}; //sizeof str2-》4
+// 计算字符串长度
+int len = sizeof greeting / sizeof greeting[0];//数组长度：6
+int len1=strlen(greeting)；//5
+</code></pre>
+<h3 id="4-二维数组">4、二维数组</h3>
+<h4 id="41-二维数组的访问和遍历">4.1 二维数组的访问和遍历</h4>
+<pre><code>行数： sizeof 数组名 / sizeof 数组名[0]
+列数： sizeof 数组名[0] / sizeof 数组名[0][0]
+int map[3][4] = {
+        {1, 2, 3, 4},
+        {11, 12, 13, 14},
+        {21, 22, 23, 24}};
+sizeof(数组名) 计算的是 整个数组的总字节数
+sizeof map-&gt;内存大小：96
+map[0]:第 0 行子数组（int[4]）	int[4]（一维数组)，其本质是「该子数组首元素的地址」
+sizeof(map[0]) 计算的是整个第 0 行子数组的总字节数（16 字节）
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>含义</th>
+<th>地址</th>
+<th>对应元素范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>map</code></td>
+<td>二维数组首地址（= 第 0 行地址）</td>
+<td><code>0x1000</code></td>
+<td>整个数组（12 个 <code>int</code>）</td>
+</tr>
+<tr>
+<td><code>map[0]</code></td>
+<td>第 0 行子数组首地址</td>
+<td><code>0x1000</code></td>
+<td><code>map[0][0]~map[0][3]</code></td>
+</tr>
+<tr>
+<td><code>map[1]</code></td>
+<td>第 1 行子数组首地址</td>
+<td><code>0x1010</code>（0x1000 + 4*4）</td>
+<td><code>map[1][0]~map[1][3]</code></td>
+</tr>
+<tr>
+<td><code>map[0][0]</code></td>
+<td>第 0 行第 0 列的具体元素</td>
+<td><code>0x1000</code></td>
+<td>单个 <code>int</code> 值</td>
+</tr>
+</tbody>
+</table>
+<h4 id="42-数组练习题">4.2 数组练习题</h4>
+<pre><code class="language-C">/*
+使用循环实现如下效果：
+		*
+	   * *
+	  *   *
+	 *     *
+	*       *
+   ***********
+*/
+#include &lt;stdio.h&gt;
+int main()
+{
+    //打印图形2.0
+    int t=6;//行数
+    //外循环控制行
+    for(int i=1;i&lt;=t;i++)
+    {
+    	//打印*前面的空格
+        for(int j=0;j&lt;=t-i;j++)
+        {
+            printf(&quot; &quot;);
+        }
+        //打印每行的*或者空格
+        for(int k=1;k&lt;=2*i-1;k++)
+        {
+            //在每行第一和最后位置输出*以及最后一行全是*
+            if(i==t || k==1 || k==2*i-1)
+            {
+                printf(&quot;*&quot;);
+            }
+            else
+            {
+                printf(&quot; &quot;);
+            }
+        }
+        printf(&quot;\n&quot;);
+        
+    }
+    return 0;
+}
+</code></pre>
+<h2 id="二-函数">二、函数</h2>
+<h3 id="1-函数四要素">1、函数四要素</h3>
+<p>（1）函数名：函数被调用时使用的名字，函数名要符合标识符规范。</p>
+<p>（2）函数体：函数中所包含的代码块，用于实现函数的具体功能和操作。</p>
+<p>（3）参数：用于接收调用函数时传递进来的值。</p>
+<p>（4）返回值：函数执行完毕后，从函数传回到调用点的值，返回值的类型要与函数名前面的返回类型对应，如果没有返回值，返回类型可以写 void。</p>
+<h3 id="2-函数不能嵌套声明">2、函数不能嵌套声明</h3>
+<p>C程序中的所有函数都是互相独立的，一个函数并不从属于另一个函数，即函数不能嵌套声明。</p>
+<pre><code class="language-C">//错误演示
+int func1(int a,int b) //第1个函数的定义
+{   
+    ...
+    int func2(int c,int d)  //第2个函数的定义
+    {   
+       ...
+    }
+    ...
+}
+</code></pre>
+<p>有些编译器的扩展允许函数嵌套声明，但这不是C标准的一部分，代码的可移植性可能会受到影响，强烈不建议。</p>
+<h3 id="3-函数的返回值">3、函数的返回值</h3>
+<p>函数调用后数能得到一个确定的值，这就是函数的返回值，返回值常常是一个计算的结果，或是用来作为判断函数执行状态的标记。</p>
+<p>函数返回值分为以下三种情况：</p>
+<p>（1）无返回值类型：针对函数无返回值或明确不需返回值的情况，使用void（即空类型）表示。</p>
+<p>（2）有返回值类型：指明具体的类型，比如，int、float、char等。需要在函数体内与return语句搭配使用。</p>
+<p>（3）<strong>如果返回值类型不是void，但函数中没有return语句，则函数会返回一个不确定的值</strong>。</p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+// 无返回值
+void fun01()
+{
+    printf(&quot;fun01\n&quot;);
+}
+// 有明确的返回值
+double fun02()
+{
+    return 3.14;
+}
+// 函数返回一个不确定的值
+int fun03()
+{
+    10 + 20;
+}
+// 返回类型与return的值类型不一致，可能造成精度损失
+int fun04()
+{
+    return 20.89;
+}
+int main()
+{
+    fun01();
+    printf(&quot;%f \n&quot;, fun02());
+    printf(&quot;%d \n&quot;, fun03()); // 返回一个不确定的值
+    printf(&quot;%d \n&quot;, fun04()); // 返回值有精度损失
+
+    return 0;
+}
+输出结果：
+fun01
+3.140000 
+10
+20
+</code></pre>
+<h3 id="4-函数的参数">4、函数的参数</h3>
+<pre><code>形参：
+定义函数时，所设置的参数； 是个变量，需要指定类型，
+命名需符合标识符规范，只能在函数体中使用。
+实参：
+调用函数时所给的参数，用于给形参赋值（按顺序赋值），数量需要与形参一致，
+实参的形式是表达式（常量、变量、表达式等）
+</code></pre>
+<h3 id="5-函数原型">5、函数原型</h3>
+<p>默认情况下，函数必须先声明，后使用。由于程序总是先运行main() 函数，导致所有其它函数都必须在main() 函数之前声明。</p>
+<p>如果想<strong>将函数声明写在后面，可以在程序开头处给出函数原型</strong>。函数原型，就是提前告诉编译器，每个函数的返回类型和参数类型。其它信息都不需要，也不用包括函数体，具体的函数实现可以后面再补上。</p>
+<pre><code>1. 函数原型表示对函数的声明，可以实现在函数定义语句的前面调用该函数。
+2. 函数原型需要指定返回类型、函数名、形参， 形参可以只保留类型省略名字。
+#include &lt;stdio.h&gt;
+// 使用函数原型进行声明
+int twice(int);
+// 主函数
+int main()
+{
+    printf(&quot;%d\n&quot;, twice(100));
+    return 0;
+}
+// 函数定义
+int twice(int num)
+{
+    return 2 * num;
+}
+输出结果：
+200
+</code></pre>
+<h3 id="6-作用域">6、作用域</h3>
+<h4 id="61-全局作用域">6.1 全局作用域</h4>
+<p>对于全局变量，如果<strong>没有显式指定初始值，它们将自动初始化为零值</strong>。</p>
+<p>对于全局数组，如果没有显式初始化它们，它们的元素将自动初始化为零值，字符数组，将初始化为空字符</p>
+<p>\0。</p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+// 定义全局变量不进行初始化赋值
+int a;    // 自动初始化为0
+double b; // 自动初始化为0.0
+char c;   // 自动初始化为空字符 \0
+// 定义全局数组不进行初始化
+int arr[5];  // 所有元素自动初始化为0
+char msg[6]; // 所有元素自动初始化为空字符 \0
+
+// 主函数
+int main()
+{
+    // 输出全局变量
+    printf(&quot;a=%d \n&quot;, a); // a=0
+    printf(&quot;b=%f \n&quot;, b); // b=0.000000
+    printf(&quot;c=%c \n&quot;, c); // c=
+    printf(&quot;\n&quot;);
+
+    // 计算数组长度
+    int len = sizeof arr / sizeof arr[0];
+    // 遍历数组 arr
+    for (int i = 0; i &lt; len; i++)
+    {
+        printf(&quot;%d &quot;, arr[i]); 
+    }
+    printf(&quot;\n\n&quot;);
+    printf(&quot;字符数组：%s&quot;, msg); // 字符数组：
+
+    return 0;
+}
+/*
+输出结果：
+a=0 
+b=0.000000
+c=
+0 0 0 0 0
+字符数组：
+*/
+</code></pre>
+<h4 id="62-局部作用域">6.2 局部作用域</h4>
+<ul>
+<li>在函数内定义的变量、标识符常量、数组等具有局部作用域，只有在该函数内部才能被访问，通常称它们为局部变量、局部常量、局部数组等。</li>
+<li>函数的形参也是局部变量。</li>
+<li>与全局变量和全局数组不同，<strong>局部变量和局部数组如果没有显式初始化，它们的初始值是机器垃圾值，即系统之前分配给这块空间的值</strong> 。</li>
+<li><strong>如果局部作用域中定义了与全局作用域中同名的标识符，优先使用本作用域中定义的数据</strong>。</li>
+</ul>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+int main()
+{
+    // 定义局部变量不进行初始化赋值
+    int a;
+    // 定义局部数组不进行初始化
+    int arr[5];
+
+    // 输出局部变量
+    printf(&quot;a=%d \n&quot;, a);
+
+    // 计算数组长度
+    int len = sizeof arr / sizeof arr[0];
+    // 遍历数组 arr
+    for (int i = 0; i &lt; len; i++)
+    {
+        printf(&quot;%d &quot;, arr[i]);
+    }
+
+    return 0;
+}
+/*
+输出结果：
+a=16 
+130611760 130611760 130611760 130611760 130611760
+*/
+</code></pre>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+// 全局变量
+int a = 100;
+int b = 200;
+
+void add() 
+{
+    int a = 300;
+    a += 10;
+    b += 10;
+    printf(&quot;函数 add 内部： a=%d, b=%d \n&quot;, a, b);
+}
+
+int main() 
+{
+    // 调用函数 add
+    add();  // 函数 add 内部： a=310, b=210
+    printf(&quot;函数 add 外部： a=%d, b=%d \n&quot;, a, b);   // 函数 add 外部： a=100, b=210
+
+    return 0;
+}
+/*
+输出结果：
+函数 add 内部： a=310, b=210 
+函数 add 外部： a=100, b=210
+*/
+</code></pre>
+<h4 id="63-块级作用域">6.3 块级作用域</h4>
+<blockquote>
+<p>C99 标准增加的特性！</p>
+</blockquote>
+<ul>
+<li>在代码块**（分支语句、循环语句等）**中定义的变量、标识符常量、数组等具有块级作用域，只有在该代码块内部才能被访问，代码块通常具有花括号 <code>{}</code> 结构。</li>
+<li>这些被称为块级变量、块级常量、块级数组等，同时也可以被称为局部变量、局部常量、局部数组，且与函数中的局部变量、局部常量、局部数组具有相同的特性。</li>
+</ul>
+<h4 id="64-作用域和内存">6.4 作用域和内存</h4>
+<p><strong>变量（标识符常量、数组）的内存存储区域：</strong></p>
+<table>
+<thead>
+<tr>
+<th>内存区域</th>
+<th>存放数据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>栈区（Stack）</td>
+<td>局部变量</td>
+</tr>
+<tr>
+<td>静态区</td>
+<td>全局变量</td>
+</tr>
+<tr>
+<td>堆区</td>
+<td>...</td>
+</tr>
+<tr>
+<td>代码区</td>
+<td>函数体代码</td>
+</tr>
+</tbody>
+</table>
+<p><strong>标识符（变量、标识符常量、数组名等）的生命周期：</strong></p>
+<pre><code>全局： 程序执行结束才销毁。
+局部： 函数开始调用的时候创建，函数调用结束销毁； 每调用一次就创建一次。
+块级： 代码块执行完毕即销毁。
+</code></pre>
+<h4 id="65-作用域练习题很好的题">6.5 作用域练习题（很好的题）</h4>
+<pre><code>思考：下面的代码输出什么内容？
+#include &lt;stdio.h&gt;
+
+double price = 200.0;
+
+void test01()
+{
+    printf(&quot;%.2f \n&quot;, price);
+}
+
+void test02()
+{
+    price = 250.0;
+    printf(&quot;%.2f \n&quot;, price);
+}
+
+// main函数
+int main()
+{
+    printf(&quot;main price=%.2f \n&quot;, price);//200.00
+    test01();//200.00
+    test02();//250.00
+    test01();//250.00 内存就是一个price变量，改了局部的也是改了
+
+    return 0;
+}
+
+</code></pre>
+<pre><code class="language-C">思考：下面的代码输出什么内容？
+#include &lt;stdio.h&gt;
+int n = 10;
+void func1()
+{
+    int n = 20;
+    printf(&quot;func1 n: %d\n&quot;, n);
+}
+
+void func2(int n)
+{
+    printf(&quot;func2 n: %d\n&quot;, n);
+}
+
+void func3()
+{
+    printf(&quot;func3 n: %d\n&quot;, n);
+}
+
+int main()
+{
+    int n = 30;
+   
+    func1();//20
+    func2(n);//30
+    func3();//10
+    {
+        int n = 40;
+        printf(&quot;block n: %d\n&quot;, n);//40
+    }
+    printf(&quot;main n: %d\n&quot;, n);//30
+
+    return 0;
+}
+</code></pre>
+<h4 id="66-static和-extern关键字">6.6 static和 extern关键字</h4>
+<p>static关键字可以声明静态变量和静态函数，以控制变量和函数的作用范围和生存周期。</p>
+<h5 id="1-静态局部变量">1、静态局部变量</h5>
+<p><img src="https://Hmtpj.github.io/post-images/1762958180345.png" alt="" loading="lazy"><br>
+使用static关键字修饰的局部变量，称为<strong>静态局部变量</strong>，静态局部变量与全局变量一样存储在内存中的<strong>全局静态区</strong>。静态局部变量具有如下特点：</p>
+<p>（1）静态局部变量<strong>只在函数第一次调用时初始化一次并将生命周期延长到整个程序的执行期间</strong>。</p>
+<p>（2）<strong>静态局部变量如果声明时没有初始赋值，系统会自动初始化为零，同全局变量的初始化规则一致</strong>。</p>
+<blockquote>
+<p>除了作用域范围，其他特性同全局变量一致！</p>
+</blockquote>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+void fn(){
+    int n = 10;
+    int a;
+    printf(&quot;n=%d, a=%d \n&quot;, n, a);
+    n++;
+    printf(&quot;n++=%d \n&quot;, n);
+    printf(&quot;    \n&quot;);
+}
+
+void fn_static() {
+    static int n = 10;
+    static int a;
+    printf(&quot;static n=%d, a=%d\n&quot;, n, a);
+    n++;
+    printf(&quot;static n++=%d \n&quot;, n);
+    printf(&quot;    \n&quot;);
+}
+
+int main() {
+	int a = 100;
+    fn();
+    fn_static();
+
+    fn();
+    fn_static();
+
+    return 0;
+}
+/*
+输出结果：
+n=10, a=16
+n++=11 
+
+static n=10, a=0
+static n++=11
+
+n=10, a=0
+n++=11
+
+static n=11, a=0
+static n++=12
+*/
+</code></pre>
+<h5 id="2-多文件编译和静态全局变量">2 、多文件编译和静态全局变量</h5>
+<p><strong>（1）多文件编译</strong></p>
+<p>C 编译器可以将多个源文件编译成一个可执行文件。创建两个源文件，分别命名为file01.c和 file02.c，源文件代码如下：</p>
+<pre><code class="language-C">//【file01.c】
+#include &lt;stdio.h&gt;
+
+int num01 = 100;
+
+const double PI01 = 3.14;
+
+char msg01[] = &quot;Hello msg01&quot;;
+
+void fn01()
+{
+    printf(&quot;function fn01 \n&quot;);
+}
+</code></pre>
+<pre><code class="language-C">//【file02c】
+#include &lt;stdio.h&gt;
+
+int main()
+{
+    printf(&quot;Hello file02&quot;);
+    return 0;
+}
+
+</code></pre>
+<p><strong>VS Code 默认是无法同时编译多个源文件</strong>的，我们使用命令行终端进行编译，打开VS Code 内置终端，运行如下命令：</p>
+<pre><code class="language-C">gcc file01.c file02.c -o main.exe
+</code></pre>
+<p>运行之后，会<strong>产生 main.exe 可执行文件</strong>，再次通过命令行运行 mian.exe 即可。</p>
+<pre><code>./main.exe
+</code></pre>
+<p>运行完会显示“Hello file02”。</p>
+<p><strong>（2）extern关键字声明外部链接</strong></p>
+<pre><code class="language-C">//下面我们演示如何在 file02.c 中使用file01.c 中定义的全局变量，修改 file02.c，如下：
+#include &lt;stdio.h&gt;
+
+int main()
+{
+    // 使用 file02.c 中定义的数据
+    printf(&quot;%d \n&quot;, num01);
+    printf(&quot;%f \n&quot;, PI01);
+    printf(&quot;%s \n&quot;, msg01);
+    fn01();
+    
+    return 0;
+}
+
+</code></pre>
+<p>重新使用命令编译：</p>
+<pre><code>gcc file01.c file02.c -o main.exe
+</code></pre>
+<p>会<strong>发现编译失败</strong>，这是因为<strong>默认无法使用外边文件中定义的变量</strong>。如果想要使用外部文件中定义的变量，我们可以<strong>使用extern 关键字声明外部链接</strong>，我们再次修改file02.c，如下：</p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+// 外部声明 file01.c 中定义的全局变量
+extern int num01;
+extern const double PI01;
+extern char msg01[];
+extern void fn01();
+
+int main()
+{
+    // 使用 file01.c 中定义的数据
+    printf(&quot;%d \n&quot;, num01);
+    printf(&quot;%f \n&quot;, PI01);
+    printf(&quot;%s \n&quot;, msg01);
+    fn01();
+    
+    return 0;
+}
+
+</code></pre>
+<p>重新使用命令编译：</p>
+<pre><code>gcc file01.c file02.c -o main.exe
+</code></pre>
+<p>​       运行：</p>
+<pre><code>./main.exe
+</code></pre>
+<p>可以成功运行。</p>
+<p><strong>（3）static关键字声明静态全局变量</strong></p>
+<p>使用 static 关键字修饰的全局变量称为静态全局变量。</p>
+<p><strong>普通全局变量对整个工程可见</strong>，其他文件中，使用extern外部声明后，可以直接使用。<strong>静态全局变量仅对当前文件可见</strong>，其他文件不可访问，其他文件中可以定义与其同名的变量，两者互不影响。</p>
+<p><strong>静态全局变量</strong>对于需要编译多个源代码文件的程序，能够有效地降低源文件之间的耦合，<strong>避免不同文件同名变量的冲突</strong>。</p>
+<p>此外static关键字还可以修饰函数（静态函数）、全局数组、全局常量等，功能作用与静态全局变量一致。</p>
+<h4 id="67-总结">6.7 总结</h4>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>可作用范围</th>
+<th>是否自动初始化</th>
+<th>内存存储区域</th>
+<th>生命周期</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>局部变量</td>
+<td>所在的函数</td>
+<td>否</td>
+<td>栈</td>
+<td>函数调用结束</td>
+</tr>
+<tr>
+<td>静态局部变量</td>
+<td><strong>所在的函数</strong></td>
+<td>是</td>
+<td>静态区</td>
+<td>程序执行结束</td>
+</tr>
+<tr>
+<td>全局变量</td>
+<td>全局(整个工程)</td>
+<td>是</td>
+<td>静态区</td>
+<td>程序执行结束</td>
+</tr>
+<tr>
+<td>静态全局变量</td>
+<td><strong>全局(所在源文件)</strong></td>
+<td>是</td>
+<td>静态区</td>
+<td>程序执行结束</td>
+</tr>
+</tbody>
+</table>
+<h3 id="7-递归函数">7、递归函数</h3>
+<p>一个函数在函数体内又调用了本身，我们称为递归调用，这样的函数就是递归函数。</p>
+<p>递归函数成功执行需满足以下两个条件：</p>
+<p>（1）<strong>必须有一个明显的结束条件</strong>。</p>
+<p>（2）<strong>必须有一个趋近于结束条件的趋势</strong>。</p>
+<h4 id="71-递归函数原理分析">7.1 递归函数原理分析</h4>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+void test(int n)
+{
+    printf(&quot;%d\n&quot;, n);
+
+    if (n &gt; 1)
+    {
+        test(n - 1);
+    }
+
+    printf(&quot;%d\n&quot;, n);
+}
+
+int main()
+{
+    // 调用函数
+    test(3);
+
+    return 0;
+}
+/*
+输出结果：
+3
+2
+1
+1
+2
+3
+*/
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://Hmtpj.github.io/post-images/1762958199611.png" alt="" loading="lazy"></figure>
+<h4 id="72-递归练习题">7.2 递归练习题</h4>
+<p>1，1，2，3，5，8，13... 这是一个斐波那契数列，它的规则是第1个和第2个斐波那契数是1，从第3个数开始，每个斐波那契数都是前两个数之和。编写程序，求第N个斐波那契数</p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+int fib(int n)
+{
+    if(n==1||n==2)
+    {
+        return 1;
+    }
+    else
+    {
+        return fib(n-1)+fib(n-2);
+    }
+}
+
+int main()
+{
+    // 求第N个斐波那契数
+    int num=0;
+    printf(&quot;请输入一个数：&quot;);
+    scanf(&quot;%d&quot;,&amp;num);
+    printf(&quot;第%d个斐波那契数为：%d&quot;,num,fib(num));
+    return 0;
+}
+</code></pre>
+<h3 id="8-常用的系统函数">8、常用的系统函数</h3>
+<h4 id="81-字符串相关函数">8.1 字符串相关函数</h4>
+<p>（1）标准库头文件 <code>&lt;string.h&gt;</code></p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>strlen(str)</td>
+<td>返回str的长度（size_t类型）</td>
+</tr>
+<tr>
+<td>strcpy(str1,str2)</td>
+<td>将str2中的字符串复制到str1中（给str1重新赋值），<strong>新值的长度不能比原字符串长，否则造成越界</strong></td>
+</tr>
+<tr>
+<td>strcat(str1,str2)</td>
+<td>将 str2 中的字符串追加到 str1 后面</td>
+</tr>
+</tbody>
+</table>
+<p>（2）标准库头文件 <code>&lt;stdio.h&gt;</code></p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sprintf()</td>
+<td>用于<strong>将格式化数据写入字符串</strong>。相比于 printf()，多了一个参数，第一个参数是要写入的字符串，后面参数与 printf() 一致。简单地讲，<strong>sprintf() 是将内容写入字符串而不是输出</strong>。</td>
+</tr>
+<tr>
+<td>sscanf()</td>
+<td><strong>用于从一个字符串中按照指定的格式提取数据</strong>。相比于 scanf()，多了一个参数，第一个参数是要提取数据的字符串，后面参数与 scanf() 一致。简单地讲，<strong>sscanf() 是从字符串中提取数据而不是从用户输入提取数据。</strong></td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+int main()
+{
+    // -------------    sprintf 的使用   ---------------
+    int age = 12;
+    double score = 65.5;
+    char name[] = &quot;张三&quot;;
+
+    char outputString[100]; // 字符数组，用于存储格式化后的字符串
+
+    // 使用 sprintf 将数据格式化为字符串
+    sprintf(outputString, &quot;我叫%s,今年%d岁,成绩%.2f分&quot;, name, age, score);
+
+    // 输出格式化后的字符串
+    printf(&quot;%s\n&quot;, outputString);
+
+    // -------------    sscanf 的使用    ---------------
+    char inputString[] = &quot;张三成绩:44,孙悟空成绩:65.5,张飞成绩:89&quot;;
+    float score1, score2, score3;
+
+    // 使用 sscanf 从字符串中提取数据
+    sscanf(inputString, &quot;张三成绩:%f,孙悟空成绩:%f,张飞成绩:%f&quot;, &amp;score1, &amp;score2, &amp;score3);
+
+    // 输出提取的数据
+    printf(&quot;score1=%.2f, score2=%.2f, score3=%.2f&quot;, score1, score2, score3);
+
+    return 0;
+}
+/*
+输出结果：
+我叫张三,今年12岁,成绩65.50分
+score1=44.00, score2=65.50, score3=89.00
+*/
+</code></pre>
+<h4 id="82-日期时间函数">8.2  日期时间函数</h4>
+<p>标准库头文件 <code>&lt;time.h&gt;</code></p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>time（&amp;变量）</td>
+<td>获取当前日期赋值到变量中，该变量需是 time_t 类型</td>
+</tr>
+<tr>
+<td>ctime（&amp;时间值）</td>
+<td>将时间戳转为字符串并返回，时间值需是 time_t 类型</td>
+</tr>
+<tr>
+<td>difftime（时间值1，时间值2）</td>
+<td>返回两个时间值的差，返回值是 double 类型，时间值需是 time_t 类型</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>time_t</code> 是C语言中用于表示时间值的数据类型，它通常是一个整数类型（int或 long 或 long long），用于存储时间戳。</p>
+<p>时间戳是指从1970年1月1日（通常称为UNIX纪元）零时零分零秒（UTC时间）起至某一特定时刻所经过的<strong>秒数</strong>。</p>
+</blockquote>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+#include &lt;time.h&gt; //该头文件中，声明和日期和时间相关的函数
+
+int main()
+{
+    // time() 获取当前的时间
+    time_t curr_time;
+    time(&amp;curr_time);
+    printf(&quot;当前时间戳：%lld \n&quot;, curr_time);
+
+    // ctime() 将时间值转为字符串
+    printf(&quot;当前时间字符串：%s \n&quot;, ctime(&amp;curr_time));
+
+    return 0;
+}
+/*
+输出结果：
+当前时间戳：1697221633 
+当前时间字符串：Sat Oct 14 02:27:13 2023
+*/
+</code></pre>
+<p>接下来，我们使用 difftime()函数来统计程序的执行时间，代码如下：</p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+#include &lt;time.h&gt; // 该头文件中，声明和日期和时间相关的函数
+
+int fn()
+{
+    int sum = 0;
+    for (int i = 0; i &lt; 10000000; i++)
+    {
+        sum = 0;
+        for (int j = 1; j &lt;= 100; j++)
+        {
+            sum += j;
+        }
+    }
+    return sum;
+}
+
+int main()
+{
+    time_t start_t, end_t;
+    time_t diff_t; // 存放时间差
+
+    time(&amp;start_t); // 得到起始时间
+    fn();           //  运行 fn 函数，看看执行花费时间
+    time(&amp;end_t);   // 函数执行结束后得到时间
+
+    // 计算两个时间值的差
+    diff_t = difftime(end_t, start_t);
+    printf(&quot;执行 fn() 函数耗用了 %lld 秒&quot;, diff_t);
+
+    return 0;
+}
+/*
+输出结果：
+执行 fn() 函数耗用了 2 秒
+*/
+</code></pre>
+<h4 id="83-数学计算函数">8.3 数学计算函数</h4>
+<p>标准库头文件 <code>&lt;stdio.h&gt;</code></p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sqrt(x)</td>
+<td>计算平方根</td>
+</tr>
+<tr>
+<td>cbrt(x)</td>
+<td>计算立方根</td>
+</tr>
+<tr>
+<td>pow(x,y)</td>
+<td>计算x的y次方</td>
+</tr>
+<tr>
+<td>fabs(x)</td>
+<td>计算x的绝对值</td>
+</tr>
+<tr>
+<td>ceil(x)</td>
+<td>向上取整</td>
+</tr>
+<tr>
+<td>floor(x)</td>
+<td>向下取整</td>
+</tr>
+<tr>
+<td>round(x)</td>
+<td>四舍五入取整</td>
+</tr>
+<tr>
+<td>trunc(c)</td>
+<td>截断小数部分</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>以上函数返回的都是 double 类型</p>
+</blockquote>
+<h2 id="附录">附录</h2>
+<p>C 语言标准库函数手册（在线）：<a href="https://zh.cppreference.com/w/c/header.html">C Standard Library headers - cppreference.com</a>或者<a href="https://www.path8.net/docs/c_std-c-lib_manual/">C标准库在线速查手册</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[嵌入式day1——C语言阶段]]></title>
+        <id>https://Hmtpj.github.io/post/qian-ru-shi-day1-c-yu-yan-jie-duan/</id>
+        <link href="https://Hmtpj.github.io/post/qian-ru-shi-day1-c-yu-yan-jie-duan/">
+        </link>
+        <updated>2025-11-07T10:08:10.000Z</updated>
+        <summary type="html"><![CDATA[<p>戒骄戒躁：C入门，51和基础硬件知识铺垫，STM32和RTOS深入，再分层技术路线由深入浅：先学linux应用开发-》linux底层固件或者驱动开发，进阶就是FPGA开发资源较少。还有就是硬件开发可以慢慢补充。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>戒骄戒躁：C入门，51和基础硬件知识铺垫，STM32和RTOS深入，再分层技术路线由深入浅：先学linux应用开发-》linux底层固件或者驱动开发，进阶就是FPGA开发资源较少。还有就是硬件开发可以慢慢补充。</p>
+<!-- more -->
+<p>[TOC]</p>
+<blockquote>
+<p>最近还在忙着跑实验写文章，只能抽着时间学学，快速过C语言基础的内容，<strong>此处整理C遗忘知识点。</strong></p>
+</blockquote>
+<h2 id="第-1-章-常量">第 1 章 常量</h2>
+<h3 id="11-常量的概念">1.1 常量的概念</h3>
+<pre><code>程序运行时，其值不能改变的量，即为常量。
+</code></pre>
+<h3 id="12-常量的分类">1.2 常量的分类</h3>
+<pre><code>字面量常量
+标识符常量
+</code></pre>
+<h3 id="13-标识符常量的定义方法">1.3 标识符常量的定义方法</h3>
+<h4 id="第一种方式-宏定义方式">第一种方式 宏定义方式</h4>
+<pre><code class="language-c">#define 常量名 值
+</code></pre>
+<blockquote>
+<p>注意：不能加分号！！！</p>
+</blockquote>
+<h4 id="第二种方式-const-关键字方式">第二种方式 const 关键字方式</h4>
+<pre><code class="language-c">const 数据类型 常量名 = 值;
+数据类型 const  常量名 = 值;
+</code></pre>
+<h4 id="两种方式的区别">两种方式的区别</h4>
+<p>**宏定义纯文本性质：**宏定义只是简单的文本替换，如#define MAX 1000会被直接替换为1000，不关心数据类型</p>
+<p><strong>宏定义调试困难：<strong>因为</strong>预处理阶段就已替换，调试时无法追踪原始宏名</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://Hmtpj.github.io/post-images/1762510291616.png" alt="" loading="lazy"></figure>
+<pre><code>1. 类型检查 
+   #define 方式不能进行类型检查 
+   const 关键字方式可进行编译期类型检查
+2. 执行时机不同
+   #define 方式在预处理阶段进行文本替换，预处理后即不存在内存实体
+   const 关键字方式，在程序执行的时候，在内存中分配空间
+</code></pre>
+<h2 id="第-2-章-原码-反码-补码">第 2 章 原码、反码、补码</h2>
+<figure data-type="image" tabindex="2"><img src="https://Hmtpj.github.io/post-images/1762510940915.png" alt="" loading="lazy"></figure>
+<pre><code>机器数：机器真实存储的二进制表示
+形式值：不考虑符号位
+真值：把最高位当符号位
+
+</code></pre>
+<pre><code>1.原码
+表示规则：与机器数真值表示相同，第一位表示符号，其余位表示数值
+正数规则：直接对应二进制数（如+1原码为00000001）
+负数规则：绝对值对应二进制数且最高位变1（如-1原码为10000001）
+零的表示：原码仍为0
+位数约定：需预先确定使用的二进制位数（常用8/16/32/64位）
+2.反码
+正数规则：与原码相同（+1反码仍为00000001）
+零的表示：反码仍为0
+负数规则：
+符号位保持不变
+其余各位取反（如-1原码10000001→反码11111110）
+设计目的：为补码计算服务，本身无独立应用价值
+3.补码
+正数规则：与原码、反码相同（三码合一）
+零的表示：补码仍为0
+负数规则：在反码基础上加1（如-1反码11111110→补码11111111）
+核心特性：计算机内部实际存储整数的方式（特别是负数）
+表示范围：以8位为例，有符号数范围为-128到127
+</code></pre>
+<p>补码计算器：https://www.lddgo.net/convert/number-binary-code</p>
+<h3 id="21-计算机为什么使用补码">2.1 计算机为什么使用补码</h3>
+<p>1、计算角度分析</p>
+<ul>
+<li>
+<p>核心问题：原码运算会导致符号位干扰</p>
+<ul>
+<li>例：2+(-2)用8位原码计算：
+<ul>
+<li>2（原码）=00000010</li>
+<li>-2（原码）=10000010</li>
+<li>相加得10000100（对应十进制-4，错误结果）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>补码优势：</p>
+<ul>
+<li>
+<p>统一加减法运算：减法转为加负数（</p>
+<p>2−2=2+(−2)</p>
+</li>
+<li>
+<p>正确性验证：</p>
+<ul>
+<li>2_{补码}=00000010</li>
+<li>-2_{补码}=11111110</li>
+<li>相加得00000000（<strong>溢出位舍弃，结果正确</strong>）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>硬件设计：</p>
+<ul>
+<li>算术逻辑单元(ALU)仅需加法器</li>
+<li>乘法/除法可通过加法迭代实现</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://Hmtpj.github.io/post-images/1762511014744.png" alt="" loading="lazy"><br>
+<strong>特殊值：1000表示-8，既保证0的唯一性又节省硬件资源</strong></p>
+<p>排列规律：</p>
+<ul>
+<li><strong>全1组合：有符号时为-1，无符号时为最大正数（4位时为15）</strong></li>
+<li>负数补码值必然大于正数补码值（因占用高位组合）</li>
+</ul>
+<p>2、存储角度分析</p>
+<ul>
+<li>表示范围优化：
+<ul>
+<li>4位二进制示例：
+<ul>
+<li>无符号数：0~15</li>
+<li>有符号补码：-8~7</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>编码效率：
+<ul>
+<li>补码消除+0/-0歧义（原码中0000和1000都表示0）</li>
+<li>连续编码：负数补码比原码大1（如-1补码为1111，原码为1001）</li>
+</ul>
+</li>
+</ul>
+<h3 id="浮点数存储原理">浮点数存储原理</h3>
+<p>根据<a href="https://standards.ieee.org/ieee/754/6210/">IEEE754</a>标准，浮点数在计算机内部分成符号S、指数E、尾数M三部分，分别以二进制的形式进行存储，其中S取0或者1（0表示正数，1表示负数），M要求大于等于1且小于10。如数字 120.45 用科学计数法表示是 1.2045*10^2，所以，S=0，E=2，M=1.2045。</p>
+<p>float 类型是32位浮点数，最高的1位是符号位S，接着用8位表示指数E，剩下的23位表示尾数M。</p>
+<figure data-type="image" tabindex="3"><img src="https://Hmtpj.github.io/post-images/1762511055376.png" alt="" loading="lazy"></figure>
+<p>double 类型是64位浮点数，最高的1位是符号位S，接着用11位表示指数E，剩下的52位表示尾数M。</p>
+<h2 id="第-3-章-数据类型和运算符">第 3 章 数据类型和运算符</h2>
+<h3 id="31-获取数据的存储大小">3.1 获取数据的存储大小</h3>
+<p><code>使用sizeof </code>可以获取数据类型或变量、字面量的存储大小，单位是字节。sizeof返回一个size_t类型的无符号整数值，格式占位符是 %zu。</p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+int main()
+{
+    // 计算数据类型的大小, 必须使用括号将数据类型关键字包裹起来
+    printf(&quot;char：%zu \n&quot;, sizeof(char));               // char：1
+    printf(&quot;short：%zu \n&quot;, sizeof(short));             // short：2
+    printf(&quot;int：%zu \n&quot;, sizeof(int));                 // int：4
+    printf(&quot;long：%zu \n&quot;, sizeof(long));               // long：4
+    printf(&quot;long long：%zu \n&quot;, sizeof(long long));     // long long：8
+    printf(&quot;float：%zu \n&quot;, sizeof(float));             // float：4
+    printf(&quot;double：%zu \n&quot;, sizeof(double));           // double：8
+    printf(&quot;long double：%zu \n&quot;, sizeof(long double)); // long double：16
+    printf(&quot;\n&quot;);
+
+    // 计算字面量数据的大小，字面量可以省略括号
+    printf(&quot;%zu \n&quot;, sizeof('a')); // 4，在 C 语言中，字符常量（如 'a'）的类型是 int，而不是 char
+    printf(&quot;%zu \n&quot;, sizeof(431)); // 4
+    printf(&quot;%zu \n&quot;, sizeof 4.31); // 8
+    printf(&quot;\n&quot;);
+
+    // 计算变量的大小，变量可以省略括号
+    char a = 'A';
+    int b = 90;
+    long long c = 100;
+    double d = 10.8;
+    printf(&quot;a: %zu \n&quot;, sizeof(a)); // a: 1
+    printf(&quot;b: %zu \n&quot;, sizeof b);  // b: 4
+    printf(&quot;c: %zu \n&quot;, sizeof(c)); // c: 8
+    printf(&quot;d: %zu \n&quot;, sizeof(d)); // d: 8
+
+    return 0;
+}
+
+</code></pre>
+<h3 id="32-数据类型转换">3.2 数据类型转换</h3>
+<h4 id="自动类型转换隐式转换">自动类型转换（隐式转换）</h4>
+<p>1、转换规则</p>
+<p>（1）不同类型整数进行运算，窄类型整数自动转换为宽类型整数，<strong>有符号整数转换为无符号整数</strong>。</p>
+<p>（2）不同类型浮点数进行运算，精度小的类型自动转换为精度大的类型。</p>
+<p>（3）整数与浮点数进行运算，整数自动转换为浮点数。</p>
+<p>2、赋值过程中的自动类型转换</p>
+<p>在赋值运算中，赋值号两边量的数据类型不同时，等号右边的类型将转换为左边的类型。<br>
+如果窄类型赋值给宽类型，不会造成精度损失；如果宽类型赋值给窄类型，会造成精度损失。</p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+int main()
+{
+    // 赋值 窄类型赋值给宽类型
+    int a1 = 10;
+    double a2 = a1;
+    printf(&quot;%f \n&quot;, a2);
+
+    // 赋值 宽类型赋值给窄类型
+    double b1 = 1.2;
+    int b2 = b1;
+    printf(&quot;%d&quot;, b2);
+
+    return 0;
+}
+输出结果：
+10.000000
+1
+</code></pre>
+<h3 id="33-强制类型转换显式转换">3.3 强制类型转换（显式转换）</h3>
+<p>1）转换格式</p>
+<p>（类型名）变量、常量或表达式</p>
+<h3 id="34-数据类型转换">3.4 数据类型转换</h3>
+<p>1、取模（取余）</p>
+<p><code>a % b</code> 的结果 <strong>符号永远与被除数（a）一致</strong></p>
+<pre><code class="language-C">#include &lt;stdio.h&gt;
+
+int main()
+{
+    int res1 = 10 % 3;
+    printf(&quot;%d\n&quot;, res1);
+
+    int res2 = -10 % 3;
+    printf(&quot;%d\n&quot;, res2);
+
+    int res3 = 10 % -3;
+    printf(&quot;%d\n&quot;, res3);
+
+    int res4 = -10 % -3;
+    printf(&quot;%d\n&quot;, res4);
+
+    return 0;
+}
+输出结果：
+1
+-1
+1
+-1
+</code></pre>
+<p><strong>注意：</strong></p>
+<p>（1）取模运算符的操作数必须是整数。</p>
+<p>（2）运算结果的符号与被模数也就是第一个操作数相同。</p>
+<p>2、自增和自减</p>
+<p>自增、自减运算符在前在后，对于表达式的值是不同的。<br>
+<strong>如果运算符在前，表达式的值是操作数自增、自减之后的值；如果运算符在后，表达式的值是操作数自增、自减之前的值。</strong></p>
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    int i1 = 10, i2 = 20;
+    int i = i1++;
+    printf(&quot;%d\n&quot;, i);  // 10
+    printf(&quot;%d\n&quot;, i1); // 11
+
+    i = ++i1;
+    printf(&quot;%d\n&quot;, i);  // 12
+    printf(&quot;%d\n&quot;, i1); // 12
+
+    i = i2--;
+    printf(&quot;%d\n&quot;, i);  // 20
+    printf(&quot;%d\n&quot;, i2); // 19
+
+    i = --i2;
+    printf(&quot;%d\n&quot;, i);  // 18
+    printf(&quot;%d\n&quot;, i2); // 18
+
+    return 0;
+}
+
+</code></pre>
+<h3 id="35-逻辑运算符">3.5 逻辑运算符</h3>
+<p>1）逻辑与 &amp;&amp;</p>
+<p>（1）如果两个操作数都为真（非零），那么表达式的值为真，否则为假。</p>
+<p>（2）如果第一个操作数为假，第二个操作数没有计算的必要了，这种现象称为短路现象。</p>
+<p>2）逻辑或 ||</p>
+<p>（1）只要有一个操作数为真，表达式的值就为真；两个操作数都为假，表达式的值为假。</p>
+<p>（2）如果第一个操作数为真，第二个操作数没有计算的必要了，这种现象称为短路现象。</p>
+<h3 id="36-位运算符">3.6  位运算符</h3>
+<table>
+<thead>
+<tr>
+<th><strong>运算符</strong></th>
+<th><strong>描述</strong></th>
+<th><strong>操作数个数</strong></th>
+<th><strong>副作用</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>&amp;</strong></td>
+<td>按位与</td>
+<td>2</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>|</strong></td>
+<td>按位或</td>
+<td>2</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>^</strong></td>
+<td>按位异或</td>
+<td>2</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>~</strong></td>
+<td>按位取反</td>
+<td>1</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>&lt;&lt;</strong></td>
+<td>按位左移</td>
+<td>2</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>&gt;&gt;</strong></td>
+<td>按位右移</td>
+<td>2</td>
+<td>无</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意：操作数进行位运算的时候，以它的补码形式进行运算。</strong></p>
+<p><strong>1）按位与、按位或、按位异或</strong></p>
+<pre><code>#include &lt;stdio.h&gt;
+int main()
+{
+    int a = 17;
+    int b = -12;
+
+    printf(&quot;a&amp;b=%d\n&quot;, a &amp; b); // a&amp;b=16
+    printf(&quot;a|b=%d\n&quot;, a | b); // a|b=-11
+    printf(&quot;a^b=%d\n&quot;, a ^ b); // a^b=-27
+
+    return 0;
+}
+输出结果：
+a&amp;b=16
+a|b=-11
+a^b=-27
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://Hmtpj.github.io/post-images/1762511093497.png" alt="" loading="lazy"></figure>
+<p><strong>2）按位取反</strong></p>
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    int a = 17;
+    int b = -12;
+
+    // 按位非
+    printf(&quot;~a=%d\n&quot;, ~a); 
+    printf(&quot;~b=%d\n&quot;, ~b); 
+
+    return 0;
+}
+输出结果：
+~a=-18
+~b=11
+
+</code></pre>
+<figure data-type="image" tabindex="5"><img src="https://Hmtpj.github.io/post-images/1762511115977.png" alt="" loading="lazy"></figure>
+<p><strong>3）按位左移、按位右移</strong></p>
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    int a = 17;
+    int b = -12;
+
+    // 按位左移
+    printf(&quot;a&lt;&lt;2=%d\n&quot;, a &lt;&lt; 2); // a&lt;&lt;2=68
+    printf(&quot;b&lt;&lt;2=%d\n&quot;, b &lt;&lt; 2); // b&lt;&lt;2=-48
+
+    // 按位右移
+    printf(&quot;a&gt;&gt;3=%d\n&quot;, a &gt;&gt; 3); // a&gt;&gt;3=2
+    printf(&quot;b&gt;&gt;3=%d\n&quot;, b &gt;&gt; 3); // b&gt;&gt;3=-2
+
+    return 0;
+}
+</code></pre>
+<figure data-type="image" tabindex="6"><img src="https://Hmtpj.github.io/post-images/1762511129347.png" alt="" loading="lazy"></figure>
+<h3 id="37-三元运算符">3.7 三元运算符</h3>
+<p>1）基本语法</p>
+<p>条件表达式? 表达式1: 表达式2；</p>
+<p>2）表达式最终取值</p>
+<p>（1）如果条件表达式为非0（真），整个表达式的值是表达式1；</p>
+<p>（2）如果条件表达式为0（假），整个表达式的值是表达式2；</p>
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    int a = 10;
+    int b = 99;
+    int res = a &gt; b ? a++ : b--;
+    int n1 = a &gt; b ? 1.1 : 1.2;
+
+    printf(&quot;a=%d \n&quot;, a);
+    printf(&quot;b=%d \n&quot;, b);
+    printf(&quot;res=%d \n&quot;, res);
+
+    return 0;
+}
+输出结果：
+a=10 
+b=98 
+res=99
+
+计算三个数的最大值：
+int max=(a&gt;b? a:b)&gt;C? (a&gt;b? a:b):c
+</code></pre>
+<h2 id="第-4-章-程序控制语句">第 4 章 程序控制语句</h2>
+<h3 id="41-多向分支switch">4.1 多向分支switch</h3>
+<pre><code>switch (表达式)
+{
+    case 常量值1:
+       语句块1;
+        break;
+    case 常量值2:
+       语句块2;
+        break;
+    case 常量值n:
+        语句块n;
+        break;
+    default:
+       语句块n + 1;
+}
+</code></pre>
+<p>说明：</p>
+<p>（1）switch后面表达式的值必须是一个整型（char、short, int, long等）或枚举类型。</p>
+<p>（2）<strong>case后面的值必须是常量</strong>，而不能是变量。</p>
+<p>（3）default是可选的，当没有匹配的case时，执行default。</p>
+<p>（4）break语句可以使程序跳出switch语句块，如果没有break，会执行下一个case 语句块，直到遇到break或者执行到switch结尾，这个现象称为穿透。</p>
+<pre><code class="language-C">//编写程序，输入月份，输出该月份有多少天。
+//说明：1月、3月、5月、7月、8月、10月、12月有31天，4月、6月、9月、11月有30天，2月有28 天或 29天。
+#include &lt;stdio.h&gt;
+
+int main()
+{
+    // 定义变量记录月份
+    int month;
+    printf(&quot;请输入月份：&quot;);
+    scanf(&quot;%d&quot;, &amp;month);
+
+    // 进行 switch 判断
+    switch (month)
+    {
+    case 1:
+    case 3:
+    case 5:
+    case 7:
+    case 8:
+    case 10:
+    case 12:
+        printf(&quot;%d 月有 31 天！&quot;, month);
+        break;
+    case 4:
+    case 6:
+    case 9:
+    case 11:
+        printf(&quot;%d 月有 30 天！&quot;, month);
+        break;
+    case 2:
+        printf(&quot;%d 月有 28 天或 29 天！&quot;, month);
+    default:
+        printf(&quot;请输入正确的月份！&quot;);
+    }
+
+    return 0;
+}
+</code></pre>
+<h3 id="42-跳转控制语句">4.2  跳转控制语句</h3>
+<p>1、 break</p>
+<p>break语句用于终止某个语句块的执行，用在<strong>switch语句或者循环语句</strong>中。</p>
+<p>2、goto 语句</p>
+<p><code>goto</code>语句是一种跳转语句，它允许程序控制流程在代码中跳转到带有标签（label）的语句处，标签（label）的名称可以自行设置，需要满足标识符规范。</p>
+<p>注意，我们在开发中不建议使用goto语句，但我们需要掌握 goto 语句的执行流程，以能够看懂其他开发者的代码中可能出现的 goto 语句。</p>
+<p>1）基本语法</p>
+<pre><code>//goto 标签名  // 跳转到指定的标签（label）处
+//...
+//标签名:      // 定义一个标签（label）
+//
+//语句;
+#include &lt;stdio.h&gt;
+
+int main()
+{
+    printf(&quot;start \n&quot;);
+    goto label1; // label1是标签名
+
+    printf(&quot;ok1 \n&quot;);
+    printf(&quot;ok2 \n&quot;);
+label1:
+    printf(&quot;ok3 \n&quot;);
+    printf(&quot;ok4 \n&quot;);
+
+    return 0;
+}
+输出结果：
+start 
+ok3
+ok4
+</code></pre>
+<p>注意：goto 后面如果引用了没有定义的标签，编译器会报错！</p>
+<h2 id="附录">附录</h2>
+<p>常用格式占位符速查表</p>
+<p>（1）整数</p>
+<table>
+<thead>
+<tr>
+<th><strong>格式占位符</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>对应类型</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>%d</strong></td>
+<td>十进制有符号整数</td>
+<td>int</td>
+</tr>
+<tr>
+<td><strong>%u</strong></td>
+<td>十进制无符号整数</td>
+<td>unsigned int</td>
+</tr>
+<tr>
+<td><strong>%hd</strong></td>
+<td>十进制有符号整数</td>
+<td>short</td>
+</tr>
+<tr>
+<td><strong>%hu</strong></td>
+<td>十进制无符号整数</td>
+<td>unsigned short</td>
+</tr>
+<tr>
+<td><strong>%ld</strong></td>
+<td>十进制有符号整数</td>
+<td>long</td>
+</tr>
+<tr>
+<td><strong>%lu</strong></td>
+<td>十进制无符号整数</td>
+<td>unsigned long</td>
+</tr>
+<tr>
+<td><strong>%lld</strong></td>
+<td>十进制有符号整数</td>
+<td>long long</td>
+</tr>
+<tr>
+<td><strong>%llu</strong></td>
+<td>十进制无符号整数</td>
+<td>unsigned long long</td>
+</tr>
+<tr>
+<td><strong>%x</strong>**、%X**</td>
+<td>十六进制无符号整数</td>
+<td>unsigned int</td>
+</tr>
+<tr>
+<td><strong>%#x</strong></td>
+<td>显示前缀 0x 的十六进制整数,用于输出。</td>
+<td>unsigned int</td>
+</tr>
+<tr>
+<td><strong>%#X</strong></td>
+<td>显示前缀 0X 的十六进制整数，用于输出。</td>
+<td>unsigned int</td>
+</tr>
+<tr>
+<td><strong>%zu</strong></td>
+<td>输出数据的字节长度</td>
+<td>size_t</td>
+</tr>
+</tbody>
+</table>
+<p>（2）浮点</p>
+<table>
+<thead>
+<tr>
+<th><strong>格式占位符</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>对应类型</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>%f</strong></td>
+<td>浮点数的常规表示</td>
+<td>float、double</td>
+</tr>
+<tr>
+<td><strong>%lf</strong></td>
+<td>浮点数的常规表示</td>
+<td>double</td>
+</tr>
+<tr>
+<td><strong>%Lf</strong></td>
+<td>浮点数的常规表示</td>
+<td>long double</td>
+</tr>
+<tr>
+<td><strong>%e</strong></td>
+<td>浮点数的科学计数法表示</td>
+<td>double、float</td>
+</tr>
+<tr>
+<td><strong>%le</strong></td>
+<td>浮点数的科学计数法表示</td>
+<td>double</td>
+</tr>
+<tr>
+<td><strong>%Le</strong></td>
+<td>浮点数的科学计数法表示</td>
+<td>long double</td>
+</tr>
+</tbody>
+</table>
+<p>（3）字符和字符串</p>
+<table>
+<thead>
+<tr>
+<th><strong>格式占位符</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>对应类型</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>%c</strong></td>
+<td>字符</td>
+<td>char</td>
+</tr>
+<tr>
+<td><strong>%s</strong></td>
+<td>字符串</td>
+<td>char *、char[]</td>
+</tr>
+</tbody>
+</table>
+<p>（4）其他</p>
+<table>
+<thead>
+<tr>
+<th><strong>格式占位符</strong></th>
+<th><strong>含义</strong></th>
+<th><strong>对应类型</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>%p</strong></td>
+<td>输出地址，通常以十六进制表示</td>
+<td>void *</td>
+</tr>
+</tbody>
+</table>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[嵌入式学习初级计划]]></title>
+        <id>https://Hmtpj.github.io/post/qian-ru-shi-xue-xi-chu-ji-ji-hua/</id>
+        <link href="https://Hmtpj.github.io/post/qian-ru-shi-xue-xi-chu-ji-ji-hua/">
+        </link>
+        <updated>2025-11-02T11:59:25.000Z</updated>
+        <summary type="html"><![CDATA[<p>加油！c语言、STM32、RTOS、项目实战......</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>加油！c语言、STM32、RTOS、项目实战......</p>
+<!-- more -->
+<h1 id="能力进阶从0到offer的四阶段蓝图">能力进阶：从0到Offer的四阶段蓝图</h1>
+<blockquote>
+<p>本文内容参考抖音——指针游侠</p>
+</blockquote>
+<h2 id="第一阶段c语言">第一阶段：C语言</h2>
+<h3 id="核心目标">核心目标</h3>
+<p>超越语法表层，建立“代码直觉”，能清晰“看见”每一行代码在内存中的运行过程，这是区分平庸程序员与优秀工程师的关键分水岭。</p>
+<h3 id="核心课程嵌入式面试圣三一">核心课程（嵌入式面试“圣三一”）</h3>
+<ul>
+<li><strong>指针（Pointers）</strong>：攻克C语言核心难点，需彻底厘清指针变量本身、函数指针、指针数组、指向数组的指针之间的区别与应用场景。</li>
+<li><strong>内存布局（Memory Layout）</strong>：能清晰绘制程序运行时的内存分区图（栈区、堆区、全局/静态区、代码区），明确局部变量、全局变量、静态变量、malloc分配变量的存储位置（高频面试题）。</li>
+<li><strong>结构体与位运算（Structs &amp; Bitwise Operations）</strong>：掌握struct内存对齐规则、sizeof与strlen的区别、static和volatile关键字的底层含义；熟练运用位运算（直接与硬件寄存器交互的核心方式）。</li>
+</ul>
+<h3 id="精选书籍推荐22进阶路径">精选书籍推荐（“2+2”进阶路径）</h3>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>书籍名称</th>
+<th>核心价值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>入门双璧</td>
+<td>《C程序设计语言》（The C Programming Language）</td>
+<td>C语言之父K&amp;R编写，代码风格优雅，是构建正确编程思想的基石，需反复品读</td>
+</tr>
+<tr>
+<td>入门双璧</td>
+<td>《C和指针》（C and Pointers）</td>
+<td>攻克指针难点的最佳工具，帮助彻底理解指针原理</td>
+</tr>
+<tr>
+<td>进阶书籍</td>
+<td>《C专家编程》（Expert C Programming）</td>
+<td>带你领略C语言精妙与诡谲之处，建立专家级理解深度，助力处理复杂调试与编写健壮代码</td>
+</tr>
+<tr>
+<td>进阶书籍</td>
+<td>《C陷阱与缺陷》（C Traps and Pitfalls）</td>
+<td>同上，补充C语言易踩坑点，提升代码严谨性</td>
+</tr>
+</tbody>
+</table>
+<h3 id="名师视频推荐b站">名师视频推荐（B站）</h3>
+<ul>
+<li>郝斌老师C语言教程：内容扎实，风评极佳，适合零基础入门。</li>
+<li>浙江大学翁恺老师课程：经典入门教程，逻辑清晰，二选一即可，避免贪多导致精力分散。</li>
+</ul>
+<h3 id="必备数据结构">必备数据结构</h3>
+<p>聚焦最常用、面试高频考点，暂不涉及复杂树、图（留至进阶阶段）：</p>
+<ul>
+<li><strong>链表（Linked List）</strong>：重点掌握双向链表，需能徒手实现增删改查操作（操作系统内核常用结构）。</li>
+<li><strong>栈（Stack）与队列（Queue）</strong>：理解“后进先出（LIFO）”“先进先出（FIFO）”核心特性，能用数组或链表实现。</li>
+</ul>
+<h3 id="开发工具选择">开发工具选择</h3>
+<p>推荐<strong>VS Code</strong>或<strong>Visual Studio社区版</strong>，二者配置简单、功能强大，能让初学者专注于语言本身，避免在工具配置上耗费过多精力。</p>
+<h3 id="阶段核心意义">阶段核心意义</h3>
+<p>学习C语言不仅是掌握一门编程语言，更是培养“像机器一样思考”的能力，理解软件逻辑向硬件行为的转化过程。C语言是软硬件间的“通用语（lingua franca）”，掌握它意味着获得在底层指挥硬件的“超能力”，是嵌入式工程师核心价值的体现。</p>
+<h2 id="第二阶段硬件世界">第二阶段：硬件世界</h2>
+<h3 id="核心目标-2">核心目标</h3>
+<p>培养嵌入式工程师核心能力：阅读芯片手册（Datasheet），将寄存器描述、时序图、功能说明精准转化为驱动硬件的代码。</p>
+<h3 id="mcu平台选择stm32为唯一答案">MCU平台选择（STM32为唯一答案）</h3>
+<p>推荐<strong>STM32F407系列</strong>，基于三大核心优势：</p>
+<ul>
+<li><strong>生态最丰富</strong>：拥有庞大开发者社区与详尽文档，99%的问题可在网上找到解决方案。</li>
+<li><strong>岗位需求最多</strong>：是主流招聘市场的工业标准，掌握后就业机会最广泛。</li>
+<li><strong>性价比最高</strong>：在性能、成本、功能间平衡极佳，覆盖从入门学习到复杂项目开发的全部需求。</li>
+</ul>
+<h3 id="库函数选择标准库spl-vs-hal库">库函数选择（标准库SPL vs HAL库）</h3>
+<p><strong>优先选择标准库（SPL）</strong>，理由如下：</p>
+<ol>
+<li><strong>技能可移植性更强</strong>：NXP、TI等其他主流MCU厂商的库函数风格更接近标准库，掌握后可平滑迁移；HAL库为ST自家封装，通用性差。</li>
+<li><strong>学习曲线更平缓</strong>：标准库更贴近寄存器底层，助力理解硬件工作原理；HAL库封装层次深、代码复杂，不利于建立底层认知，且学会标准库后再学HAL库极易上手（反之则难）。</li>
+<li><strong>开发效率更高</strong>：HAL库为兼容所有STM32型号，代码冗余多，编译速度远慢于标准库，影响学习体验与调试效率。</li>
+</ol>
+<h3 id="核心外设清单嵌入式开发入场券">核心外设清单（嵌入式开发入场券）</h3>
+<p>需掌握以下外设的寄存器配置与库函数使用，是绝大多数嵌入式应用的基础：</p>
+<ul>
+<li>GPIO（通用输入输出）</li>
+<li>UART（通用异步收发器/串口）</li>
+<li>中断（Interrupts）</li>
+<li>TIMER（定时器）</li>
+<li>ADC（模数转换器）</li>
+<li>SPI（串行外设接口）</li>
+<li>I2C（集成电路间总线）</li>
+<li>PWM（脉冲宽度调制）</li>
+<li>DMA（直接存储器访问）</li>
+</ul>
+<h3 id="权威视频课程推荐">权威视频课程推荐</h3>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>推荐资源</th>
+<th>核心优势</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>免费入门首选</td>
+<td>B站“野火”“正点原子”STM32教程</td>
+<td>内容细致、用心，被誉为免费视频“圣经”，质量超多数付费课程；若理解有难度，可选择“江科大”教程（易懂易上手）</td>
+</tr>
+<tr>
+<td>商业生态体系</td>
+<td>“野火（Wildfire）”“正点原子（Alientek）”</td>
+<td>提供开发板、文档、视频教程、社区支持的完整生态，适合系统学习</td>
+</tr>
+</tbody>
+</table>
+<h2 id="第三阶段系统开发者用任务而非循环思考">第三阶段：系统开发者——用任务而非循环思考</h2>
+<h3 id="核心目标-3">核心目标</h3>
+<p>实现从“工程师”到“开发者”的跃迁：学习实时操作系统（RTOS），建立“系统思维”，将复杂项目拆解为独立任务并高效管理调度，是区分初/中级工程师、冲击高薪的关键技能。</p>
+<h3 id="rtos平台与名师推荐">RTOS平台与名师推荐</h3>
+<ul>
+<li><strong>入门平台</strong>：FreeRTOS（代码精简、开源免费、亚马逊支持，是业界标准与MCU厂商官方主流系统，社区资料丰富）。</li>
+<li><strong>进阶资源</strong>：嵌入式Linux领域可学习韦东山老师课程（行业标杆，适合后续深入）；野火、正点原子均提供系统性FreeRTOS教程，为入门可靠选择。</li>
+</ul>
+<h3 id="核心实践">核心实践：</h3>
+<p>必须独立完成 1 个完整物联网项目（如联网温湿度采集器），将 “采集→处理→通信” 等任务管理有序，能力可超越多数初学者。基于 FreeRTOS 的 STM32 智能天气时钟和联网温湿度采集器</p>
+<h3 id="思维跃迁从调用api到理解内核">思维跃迁（从调用API到理解内核）</h3>
+<ul>
+<li><strong>初级水平</strong>：调用FreeRTOS API（创建任务、使用信号量/互斥锁），短期可掌握，但无竞争力。</li>
+<li><strong>核心竞争力</strong>：理解RTOS内核原理（工程师“内功”，面试官重点考察），因所有RTOS原理相通，掌握底层机制可快速上手任意系统。</li>
+</ul>
+<h3 id="面试核心rtos内核原理清单">面试核心（RTOS内核原理清单）</h3>
+<p>需深入研究并清晰阐述以下概念：</p>
+<ul>
+<li><strong>任务调度（Task Scheduling）</strong>：调度器工作机制、调度算法（如基于优先级的抢占式调度）、任务上下文切换（Context Switch）中CPU与内存的具体变化。</li>
+<li><strong>任务间通信（Inter-Task Communication, IPC）</strong>：队列、信号量、互斥锁的内部实现，各自应用场景与优缺点（如信号量与互斥锁的根本区别：所有权、优先级继承）。</li>
+<li><strong>内存管理（Memory Management）</strong>：FreeRTOS内存分配方案（heap_1至heap_5）的实现方式、优缺点、适用场景。</li>
+<li><strong>中断管理（Interrupt Management）</strong>：RTOS处理中断的机制，中断服务程序（ISR）与任务安全交互的方式（如使用FromISR版本API）。</li>
+</ul>
+<h3 id="学习rtos的核心意义">学习RTOS的核心意义</h3>
+<p>当项目功能增多（如同时处理网络通信、传感器采集、UI刷新），单纯依赖while(1)主循环与中断会导致代码逻辑复杂、难以维护。RTOS提供成熟设计哲学，推动开发者从“实现单个功能”上升到“组织调度多个功能”的系统层面，掌握后可构建可扩展、可维护、高可靠性固件——这是专业嵌入式系统工程师的标志。</p>
+<h2 id="第四阶段高级从业者构建坚不可摧的技术护城河">第四阶段：高级从业者——构建坚不可摧的技术护城河</h2>
+<h3 id="核心目标-4">核心目标</h3>
+<p>冲刺年薪30万+顶级Offer，学习高价值、专业化技术，追求系统极致性能、可靠性与可维护性，构建个人技术品牌，从“编码者”转变为“对系统全貌负责的工程师”。</p>
+<h3 id="高级工具链应用解锁设备生命周期管理">高级工具链应用（解锁设备生命周期管理）</h3>
+<h4 id="核心知识">核心知识</h4>
+<p>理解<strong>链接器（Linker）</strong> 是区分高/普通工程师的关键：需学习阅读与修改链接脚本（Linker Script），明确其定义程序内存布局、将代码段（.text）、数据段（.data）等精准放置到Flash与RAM指定位置的原理。</p>
+<h4 id="高价值应用现代物联网设备核心功能">高价值应用（现代物联网设备核心功能）</h4>
+<ul>
+<li><strong>IAP（In-Application Programming，在线应用编程）</strong>：设备无需外部编程器，通过串口/USB/网络等接口接收新固件，由自身Bootloader更新应用代码。</li>
+<li><strong>OTA（Over-the-Air，空中升级）</strong>：IAP的网络化版本，设备通过Wi-Fi/蜂窝网络远程下载更新固件。<br>
+<em>注：独立实现简单Bootloader与IAP流程，是简历黄金亮点，直接证明具备产品级固件开发与维护能力。</em></li>
+</ul>
+<h3 id="必备中间件巡礼站在巨人的肩膀上">必备中间件巡礼（站在巨人的肩膀上）</h3>
+<p>中间件是预开发的特定问题解决方案，熟悉行业标准中间件是工程经验的重要体现：</p>
+<ul>
+<li><strong>图形用户界面（GUI）</strong>：LVGL（开源免费、资源占用低，嵌入式GUI开发事实标准）。</li>
+<li><strong>文件系统（File System）</strong>：FatFS（轻量级FAT文件系统模块，管理SD卡/U盘/板载Flash数据）。</li>
+<li><strong>网络协议栈（Networking）</strong>：LwIP（轻量级TCP/IP协议栈，实现设备联网关键）。</li>
+<li><strong>实用工具组件</strong>：letter-shell（构建命令行交互界面）、easylogger（实现强大日志功能）。</li>
+</ul>
+<h3 id="专业级调试技术从猜到看">专业级调试技术（从“猜”到“看”）</h3>
+<p>“三分写代码，七分靠调试”，需超越printf打印与IDE单步调试，掌握专业工具与方法：</p>
+<h4 id="硬件分析工具">硬件分析工具</h4>
+<ul>
+<li><strong>逻辑分析仪（Logic Analyzer）</strong>：捕获分析数字信号（SPI/I2C/UART）时序，调试通信协议问题。</li>
+<li><strong>示波器（Oscilloscope）</strong>：观察电信号波形，分析信号质量。</li>
+</ul>
+<h4 id="高级软件工具">高级软件工具</h4>
+<ul>
+<li><strong>Segger Ozone</strong>：独立调试软件，功能比IDE集成调试器更丰富、性能更佳。</li>
+<li><strong>Segger SystemView</strong>：实时记录可视化分析RTOS行为，清晰查看任务切换、中断发生、API调用，是RTOS应用分析优化的“X光机”。</li>
+</ul>
+<h4 id="高级调试方法">高级调试方法</h4>
+<p>单元测试（Unit Testing）、硬件断点、回溯分析（Backtrace）等。</p>
+<h3 id="阶段核心意义-2">阶段核心意义</h3>
+<p>本阶段核心是“从实现功能到构建系统”的转变：工具链、中间件、调试技术并非孤立技能，而是服务于“构建专业级性能（可靠性、可更新性、效率、可测试性）稳健系统”的工具集。这种系统级工程能力，是顶尖科技公司支付高薪的核心价值所在。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[第一个文章]]></title>
+        <id>https://Hmtpj.github.io/post/di-yi-ge-wen-zhang/</id>
+        <link href="https://Hmtpj.github.io/post/di-yi-ge-wen-zhang/">
+        </link>
+        <updated>2025-11-02T09:27:08.000Z</updated>
+        <content type="html"><![CDATA[<p>记录学习的第一步😀<br>
+<img src="https://Hmtpj.github.io/post-images/1762075690734.png" alt="" loading="lazy"></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Hello Gridea]]></title>
+        <id>https://Hmtpj.github.io/post/hello-gridea/</id>
+        <link href="https://Hmtpj.github.io/post/hello-gridea/">
+        </link>
+        <updated>2018-12-11T16:00:00.000Z</updated>
+        <summary type="html"><![CDATA[<p>👏  欢迎使用 <strong>Gridea</strong> ！<br>
+✍️  <strong>Gridea</strong> 一个静态博客写作客户端。你可以用它来记录你的生活、心情、知识、笔记、创意... ...</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>👏  欢迎使用 <strong>Gridea</strong> ！<br>
+✍️  <strong>Gridea</strong> 一个静态博客写作客户端。你可以用它来记录你的生活、心情、知识、笔记、创意... ...</p>
+<!-- more -->
+<p><img src="https://Hmtpj.github.io/post-images/1762073607237.png" alt="" loading="lazy"><br>
+<a href="https://github.com/getgridea/gridea">Github</a><br>
+<a href="https://gridea.dev/">Gridea 主页</a><br>
+<a href="https://fehey.com/">示例网站</a></p>
+<h2 id="特性">特性👇</h2>
+<p>📝  你可以使用最酷的 <strong>Markdown</strong> 语法，进行快速创作</p>
+<p>🌉  你可以给文章配上精美的封面图和在文章任意位置插入图片</p>
+<p>🏷️  你可以对文章进行标签分组</p>
+<p>📋  你可以自定义菜单，甚至可以创建外部链接菜单</p>
+<p>💻  你可以在 <strong>Windows</strong>，<strong>MacOS</strong> 或 <strong>Linux</strong> 设备上使用此客户端</p>
+<p>🌎  你可以使用 <strong>𝖦𝗂𝗍𝗁𝗎𝖻 𝖯𝖺𝗀𝖾𝗌</strong> 或 <strong>Coding Pages</strong> 向世界展示，未来将支持更多平台</p>
+<p>💬  你可以进行简单的配置，接入 <a href="https://github.com/gitalk/gitalk">Gitalk</a> 或 <a href="https://github.com/SukkaW/DisqusJS">DisqusJS</a> 评论系统</p>
+<p>🇬🇧  你可以使用<strong>中文简体</strong>或<strong>英语</strong></p>
+<p>🌁  你可以任意使用应用内默认主题或任意第三方主题，强大的主题自定义能力</p>
+<p>🖥  你可以自定义源文件夹，利用 OneDrive、百度网盘、iCloud、Dropbox 等进行多设备同步</p>
+<p>🌱 当然 <strong>Gridea</strong> 还很年轻，有很多不足，但请相信，它会不停向前 🏃</p>
+<p>未来，它一定会成为你离不开的伙伴</p>
+<p>尽情发挥你的才华吧！</p>
+<p>😘 Enjoy~</p>
+]]></content>
+    </entry>
+</feed>
