@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>RingBuffer 移植与使用说明 | HM&amp;TPJ遇风</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://Hmtpj.github.io/favicon.ico?v=1789357832126">
+<link rel="stylesheet" href="https://Hmtpj.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="RingBuffer 移植与使用说明
+1. 文档目的
+本文说明本工程中 RingBuffer 环形缓冲区的移植方式、接口用法和在 STM32F407 串口接收场景中的集成流程。当前实现用于解决以下问题：串口接收中断到达速度高于 Letter..." />
+    <meta name="keywords" content="技术" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://Hmtpj.github.io">
+        <img src="https://Hmtpj.github.io/images/avatar.png?v=1789357832126" class="site-logo">
+        <h1 class="site-title">HM&amp;TPJ遇风</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/Hmtpj/Hmtpj.github.io" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      学习啦
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://Hmtpj.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">RingBuffer 移植与使用说明</h2>
+            <div class="post-date">2026-09-14</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="ringbuffer-移植与使用说明">RingBuffer 移植与使用说明</h1>
+<h2 id="1-文档目的">1. 文档目的</h2>
+<p>本文说明本工程中 RingBuffer 环形缓冲区的移植方式、接口用法和在 STM32F407 串口接收场景中的集成流程。当前实现用于解决以下问题：串口接收中断到达速度高于 Letter Shell 命令处理速度时，不能只用单个变量暂存数据，否则后到的数据会覆盖先到的数据。</p>
+<p>当前数据流如下：</p>
+<pre><code class="language-text">串口终端 -&gt; USART1 接收中断 -&gt; usart_rx_handle() -&gt; RingBuffer
+                                                    -&gt; 主循环 -&gt; shellHandler()
+</code></pre>
+<p>中断负责快速接收并入队，主循环负责出队和执行 Shell 输入处理。这样可缩短中断处理时间，降低连续输入时的数据丢失概率。</p>
+<h2 id="2-工程环境">2. 工程环境</h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>当前配置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目标芯片</td>
+<td>STM32F407 系列</td>
+</tr>
+<tr>
+<td>编译工程</td>
+<td><code>mdk/stm32f407.uvprojx</code></td>
+</tr>
+<tr>
+<td>编译器</td>
+<td>Keil ARMCC，C99 模式</td>
+</tr>
+<tr>
+<td>标准外设库宏</td>
+<td><code>STM32F40_41xxx</code>、<code>USE_STDPERIPH_DRIVER</code></td>
+</tr>
+<tr>
+<td>外部晶振配置</td>
+<td><code>HSE_VALUE=8000000</code></td>
+</tr>
+<tr>
+<td>串口</td>
+<td>USART1，115200、8 数据位、无校验、1 停止位、无硬件流控</td>
+</tr>
+<tr>
+<td>串口引脚</td>
+<td>PA9 为发送，PA10 为接收，复用功能为 USART1</td>
+</tr>
+<tr>
+<td>环形缓冲区容量</td>
+<td>128 字节</td>
+</tr>
+<tr>
+<td>Shell 输入缓存</td>
+<td>512 字节</td>
+</tr>
+</tbody>
+</table>
+<p>工程最近一次构建记录位于 <code>build/stm32f407/unify_builder.log</code>，其中显示构建成功。该记录只能说明当时的工程状态；修改源码或工程配置后，仍应重新构建验证。</p>
+<h2 id="3-文件组成">3. 文件组成</h2>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>third_lib/ringbuffer/ringbuffer.h</code></td>
+<td>RingBuffer 数据结构、状态码和函数声明</td>
+</tr>
+<tr>
+<td><code>third_lib/ringbuffer/ringbuffer.c</code></td>
+<td>RingBuffer 读写、删除和容量查询实现</td>
+</tr>
+<tr>
+<td><code>driver/console/console_usart.h</code></td>
+<td>串口初始化、发送和接收回调注册接口</td>
+</tr>
+<tr>
+<td><code>driver/console/console_usart.c</code></td>
+<td>USART1 初始化与接收中断服务函数</td>
+</tr>
+<tr>
+<td><code>app/board.c</code></td>
+<td>使能 GPIOA、USART1 时钟并配置中断优先级分组</td>
+</tr>
+<tr>
+<td><code>app/main.c</code></td>
+<td>初始化 RingBuffer，并连接串口接收回调与 Letter Shell</td>
+</tr>
+<tr>
+<td><code>third_lib/lettershell/</code></td>
+<td>Letter Shell 源码和命令表</td>
+</tr>
+<tr>
+<td><code>mdk/stm32f407.uvprojx</code></td>
+<td>Keil 工程文件，包含源文件和头文件搜索路径</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-ringbuffer-原理">4. RingBuffer 原理</h2>
+<p>环形缓冲区由用户提供的一段连续内存和三个状态量组成：</p>
+<table>
+<thead>
+<tr>
+<th>成员</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>head</code></td>
+<td>下一个读取位置</td>
+</tr>
+<tr>
+<td><code>tail</code></td>
+<td>下一个写入位置</td>
+</tr>
+<tr>
+<td><code>Length</code></td>
+<td>当前已存储的有效字节数</td>
+</tr>
+<tr>
+<td><code>array_addr</code></td>
+<td>外部数据数组首地址</td>
+</tr>
+<tr>
+<td><code>max_Length</code></td>
+<td>缓冲区总容量</td>
+</tr>
+</tbody>
+</table>
+<p>写入数据时，从 <code>tail</code> 位置开始写入并推进 <code>tail</code>；读取数据时，从 <code>head</code> 位置开始读取并推进 <code>head</code>。当指针到达数组末尾时回到数组起始位置，因此读写可以循环进行。</p>
+<p>本实现用 <code>Length</code> 区分空和满：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>判定条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>空</td>
+<td><code>Length == 0</code></td>
+</tr>
+<tr>
+<td>满</td>
+<td><code>Length == max_Length</code></td>
+</tr>
+<tr>
+<td>可用空间</td>
+<td><code>max_Length - Length</code></td>
+</tr>
+</tbody>
+</table>
+<p>因此，容量为 128 字节的数组可以保存完整的 128 字节，不需要预留一个空槽。</p>
+<h2 id="5-接口说明">5. 接口说明</h2>
+<p><code>ringbuffer.h</code> 中的状态码如下：</p>
+<pre><code class="language-c">/* 操作成功 */
+#define RING_BUFFER_SUCCESS 0x01
+
+/* 操作失败 */
+#define RING_BUFFER_ERROR   0x00
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>接口</th>
+<th>作用</th>
+<th>失败条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RB_Init</code></td>
+<td>绑定外部数组并清空逻辑状态</td>
+<td>容量小于 2，或容量为<code>0xFFFFFFFF</code></td>
+</tr>
+<tr>
+<td><code>RB_Write_Byte</code></td>
+<td>写入一个字节</td>
+<td>缓冲区已满</td>
+</tr>
+<tr>
+<td><code>RB_Write_String</code></td>
+<td>连续写入指定长度的数据</td>
+<td>剩余空间不足</td>
+</tr>
+<tr>
+<td><code>RB_Read_Byte</code></td>
+<td>读取并移除一个字节</td>
+<td>缓冲区为空</td>
+</tr>
+<tr>
+<td><code>RB_Read_String</code></td>
+<td>读取并移除指定长度的数据</td>
+<td>有效数据不足</td>
+</tr>
+<tr>
+<td><code>RB_Delete</code></td>
+<td>从读取端丢弃指定长度的数据</td>
+<td>要删除的长度大于有效数据长度</td>
+</tr>
+<tr>
+<td><code>RB_Get_Length</code></td>
+<td>获取当前有效数据长度</td>
+<td>无</td>
+</tr>
+<tr>
+<td><code>RB_Get_FreeSize</code></td>
+<td>获取剩余可写空间</td>
+<td>无</td>
+</tr>
+</tbody>
+</table>
+<h3 id="51-初始化">5.1 初始化</h3>
+<p>外部数组必须在 RingBuffer 使用期间持续有效。推荐用静态数组，避免函数返回后内存失效。</p>
+<pre><code class="language-c">#include &lt;stdint.h&gt;
+#include &quot;ringbuffer.h&quot;
+
+/* 定义实际的数据存储空间 */
+static uint8_t rx_buffer[128];
+
+/* 定义环形缓冲区控制块 */
+static ring_buffer rx_ringbuffer;
+
+void ringbuffer_init_example(void)
+{
+    /* 绑定存储数组并清空读写状态 */
+    if (RB_Init(&amp;rx_ringbuffer, rx_buffer, sizeof(rx_buffer)) != RING_BUFFER_SUCCESS)
+    {
+        /* 初始化失败时不得继续使用该缓冲区 */
+        while (1)
+        {
+        }
+    }
+}
+</code></pre>
+<h3 id="52-单字节写入和读取">5.2 单字节写入和读取</h3>
+<p>单字节接口适合串口中断等逐字节到达的场景。</p>
+<pre><code class="language-c">uint8_t input = 'A';
+uint8_t output;
+
+/* 有空间时写入一个字节 */
+if (RB_Write_Byte(&amp;rx_ringbuffer, input) == RING_BUFFER_SUCCESS)
+{
+    /* 写入成功 */
+}
+
+/* 有数据时读取一个字节；读取后该字节从缓冲区移除 */
+if (RB_Read_Byte(&amp;rx_ringbuffer, &amp;output) == RING_BUFFER_SUCCESS)
+{
+    /* output 的值为 'A' */
+}
+</code></pre>
+<h3 id="53-批量写入和读取">5.3 批量写入和读取</h3>
+<p>批量接口内部使用 <code>memcpy</code>。数据跨越数组尾部时，函数会自动拆成两段复制，调用方不需要处理回绕。</p>
+<pre><code class="language-c">uint8_t tx_data[] = {1, 2, 3, 4};
+uint8_t rx_data[4];
+
+/* 只有剩余空间可容纳全部数据时才写入 */
+if (RB_Write_String(&amp;rx_ringbuffer, tx_data, sizeof(tx_data)) == RING_BUFFER_SUCCESS)
+{
+    /* 四个字节已按顺序写入 */
+}
+
+/* 只有有效数据不少于请求长度时才读取 */
+if (RB_Read_String(&amp;rx_ringbuffer, rx_data, sizeof(rx_data)) == RING_BUFFER_SUCCESS)
+{
+    /* rx_data 依次得到 1、2、3、4 */
+}
+</code></pre>
+<h3 id="54-丢弃已接收数据">5.4 丢弃已接收数据</h3>
+<p>当协议出错或需要跳过无效帧头时，可从读取端删除指定数量的数据。</p>
+<pre><code class="language-c">/* 丢弃最早进入缓冲区的两个字节 */
+if (RB_Delete(&amp;rx_ringbuffer, 2) != RING_BUFFER_SUCCESS)
+{
+    /* 当前有效数据不足两个字节，未执行删除 */
+}
+</code></pre>
+<h2 id="6-当前-stm32f407-移植步骤">6. 当前 STM32F407 移植步骤</h2>
+<p>以下步骤对应当前工程，移植到新建 STM32F4 标准库工程时可按同样顺序完成。</p>
+<h3 id="61-加入-ringbuffer-源文件">6.1 加入 RingBuffer 源文件</h3>
+<p>将下列文件复制到目标工程的第三方组件目录：</p>
+<pre><code class="language-text">third_lib/ringbuffer/ringbuffer.c
+third_lib/ringbuffer/ringbuffer.h
+</code></pre>
+<p>在 Keil 的工程分组中加入 <code>ringbuffer.c</code>，并在 C/C++ 的 Include Paths 中加入 <code>third_lib/ringbuffer</code>。当前工程的头文件路径已包含该目录。</p>
+<h3 id="62-加入串口驱动">6.2 加入串口驱动</h3>
+<p>当前串口驱动位于 <code>driver/console</code>，其职责是完成硬件初始化和将接收到的字节交给已注册回调。</p>
+<p>初始化顺序为：</p>
+<ol>
+<li><code>board_lowlevel_init()</code> 配置 NVIC 优先级分组，并打开 GPIOA 与 USART1 时钟。</li>
+<li><code>usart_init()</code> 将 PA9、PA10 配置为复用功能，设置 USART1 参数并使能 RXNE 接收中断。</li>
+<li><code>usart_recv_callback_register()</code> 注册接收回调。</li>
+</ol>
+<p>当前驱动关键行为如下：</p>
+<pre><code class="language-c">void USART1_IRQHandler(void)
+{
+    /* 判断是否由接收数据寄存器非空中断触发 */
+    if (USART_GetITStatus(USART1, USART_IT_RXNE))
+    {
+        /* 读取数据寄存器，获得本次接收的一个字节 */
+        uint8_t data = USART_ReceiveData(USART1);
+
+        /* 将字节交给应用层注册的接收处理函数 */
+        if (usart_rx_callback)
+        {
+            usart_rx_callback(data);
+        }
+
+        /* 清除本次中断的挂起状态 */
+        USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+    }
+}
+</code></pre>
+<p>移植到其他串口时，需要同步替换外设时钟、GPIO 端口和引脚、复用功能编号、IRQ 名称，以及 <code>USARTx</code> 实例。例如使用 USART2 时，通常应调整为对应的 APB1 时钟和 <code>USART2_IRQHandler</code>。</p>
+<h3 id="63-在应用层建立接收队列">6.3 在应用层建立接收队列</h3>
+<p><code>app/main.c</code> 定义了数据数组和 RingBuffer 控制块：</p>
+<pre><code class="language-c">/* 串口接收数据的实际存储空间 */
+static uint8_t rx_buffer[128];
+
+/* 串口接收队列的控制块 */
+static ring_buffer rx_rb_handle;
+</code></pre>
+<p>接收回调运行在 USART1 中断上下文中。当前逻辑在空间足够时写入；满时直接丢弃新到字节。</p>
+<pre><code class="language-c">static void usart_rx_handle(uint8_t data)
+{
+    /* 缓冲区未满时保存新到的串口字节 */
+    if (RB_Get_FreeSize(&amp;rx_rb_handle) &gt; 0)
+    {
+        RB_Write_Byte(&amp;rx_rb_handle, data);
+    }
+
+    /* 缓冲区满时丢弃本字节，避免覆盖尚未处理的数据 */
+}
+</code></pre>
+<p>主循环在非中断上下文中持续检查并读取数据，再传入 <code>shellHandler()</code>：</p>
+<pre><code class="language-c">while (1)
+{
+    /* 缓冲区有数据时取出一个字节 */
+    if (RB_Get_Length(&amp;rx_rb_handle) &gt; 0)
+    {
+        RB_Read_Byte(&amp;rx_rb_handle, &amp;read_data);
+
+        /* 将字节送入 Letter Shell 的命令解析器 */
+        shellHandler(&amp;shell, read_data);
+    }
+}
+</code></pre>
+<h3 id="64-初始化顺序">6.4 初始化顺序</h3>
+<p><code>main()</code> 中的关键初始化顺序不能颠倒：应先初始化底层时钟和串口，再注册回调并初始化 RingBuffer，最后初始化 Shell。</p>
+<pre><code class="language-c">int main(void)
+{
+    /* 打开 GPIOA、USART1 时钟并设置中断优先级分组 */
+    board_lowlevel_init();
+
+    /* 初始化 USART1 硬件和接收中断 */
+    usart_init();
+
+    /* 注册中断接收后的应用层处理函数 */
+    usart_recv_callback_register(usart_rx_handle);
+
+    /* 初始化串口接收环形缓冲区 */
+    RB_Init(&amp;rx_rb_handle, rx_buffer, sizeof(rx_buffer));
+
+    /* 配置 Shell 的发送接口并初始化 Shell */
+    shell.write = _shell_write;
+    shellInit(&amp;shell, shell_buffer, sizeof(shell_buffer));
+
+    while (1)
+    {
+        /* 主循环按需读取 RingBuffer 并调用 shellHandler() */
+    }
+}
+</code></pre>
+<p>实际工程中，更稳妥的写法是在 <code>RB_Init()</code> 成功后再开启 RXNE 中断或注册回调。这样可以排除初始化窗口内发生接收中断、但缓冲区尚未准备完成的风险。</p>
+<h2 id="7-letter-shell-关联配置">7. Letter Shell 关联配置</h2>
+<p>本工程的 <code>third_lib/lettershell/shell_cfg.h</code> 中，<code>SHELL_USING_CMD_EXPORT</code> 为 <code>0</code>，因此 Shell 命令使用静态命令表方式管理：</p>
+<ol>
+<li>在 <code>app/commands</code> 中实现命令函数，例如 <code>cmd_helloworld()</code>、<code>cmd_add()</code>。</li>
+<li>在 <code>third_lib/lettershell/shell_cmd_list.c</code> 中声明命令函数。</li>
+<li>在 <code>shellCommandList[]</code> 中增加 <code>SHELL_CMD_ITEM(...)</code>。</li>
+</ol>
+<p>串口接收与命令注册相互独立：RingBuffer 只保证输入字节按先进先出顺序交给 <code>shellHandler()</code>；命令表决定 Shell 收到完整命令行后执行哪个命令。</p>
+<p>可在串口终端中输入以下命令进行联调：</p>
+<pre><code class="language-text">help
+helloworld
+helloworld 123 tpj hm
+add 12 30
+</code></pre>
+<p>终端需设置为 115200 波特率、8 数据位、无校验、1 停止位、无流控。按回车后 Shell 会执行命令；当前配置同时接受回车符 <code>CR</code> 和换行符 <code>LF</code>。</p>
+<h2 id="8-容量选择">8. 容量选择</h2>
+<p>缓冲区容量应根据最大突发数据量和主循环的最长处理阻塞时间选择。可使用下面的估算：</p>
+<pre><code class="language-text">最小容量 &gt;= 接收速率（字节每秒） × 最大处理延迟（秒） + 安全余量
+</code></pre>
+<p>以 115200 波特率、8N1 为例，每个字节约占 10 个串行位，理论最大接收速率约为 11520 字节每秒。若主循环最长可能 10 ms 未处理接收数据，则至少需要：</p>
+<pre><code class="language-text">11520 × 0.01 = 115.2 字节
+</code></pre>
+<p>当前 128 字节缓冲区仅能覆盖约 11 ms 的满速连续输入，安全余量有限。若主循环中将加入耗时操作、打印操作、Flash 写入或协议解析，应增大 <code>rx_buffer</code>，例如 256 或 512 字节，并评估 SRAM 占用。</p>
+<h2 id="9-并发与中断注意事项">9. 并发与中断注意事项</h2>
+<p>当前用法是“中断写入，主循环读取”。<code>ring_buffer</code> 的成员为普通变量，库本身不提供原子操作、临界区或锁，因此需注意以下边界：</p>
+<ol>
+<li><code>head</code>、<code>tail</code> 和 <code>Length</code> 可能同时被中断和主循环访问。</li>
+<li>Cortex-M4 对对齐的 32 位单次读写通常是原子的，但“先查询长度再读写”属于多个操作，不是完整原子事务。</li>
+<li>当前应用数据量较小、主循环操作很短，通常可用于教学和轻量串口交互；更高吞吐量或更严格可靠性要求下，应加入同步保护。</li>
+<li>不要在两个不同中断或多个任务中同时写同一个 RingBuffer，也不要让多个消费者同时读取同一个 RingBuffer。</li>
+</ol>
+<p>可选改进措施：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>裸机且需要严格一致性</td>
+<td>对查询加操作的组合使用短临界区保护</td>
+</tr>
+<tr>
+<td>使用 FreeRTOS</td>
+<td>用临界区、互斥机制或专用消息队列保护访问</td>
+</tr>
+<tr>
+<td>高速连续串口数据</td>
+<td>使用 DMA 循环接收，并在半传输/全传输事件中批量入队或直接解析</td>
+</tr>
+<tr>
+<td>缓冲区溢出需追踪</td>
+<td>增加溢出计数器和错误上报接口</td>
+</tr>
+<tr>
+<td>不允许丢弃新数据</td>
+<td>明确改用覆盖旧数据策略，或采用流控/协议确认机制</td>
+</tr>
+</tbody>
+</table>
+<h2 id="10-当前实现的限制">10. 当前实现的限制</h2>
+<p>使用或二次移植前应了解以下限制：</p>
+<ol>
+<li><code>RB_Init()</code>、读写和查询接口未检查空指针，调用方必须传入有效地址。</li>
+<li><code>RB_Write_String()</code> 与 <code>RB_Read_String()</code> 的数据指针必须有效，且缓冲区大小由调用方保证。</li>
+<li>写入空间不足时，批量写入不会写入部分数据；单字节写入会直接失败。</li>
+<li>当前串口回调在缓冲区满时静默丢弃新字节，没有统计或提示。</li>
+<li>当前 <code>_shell_write()</code> 使用轮询发送，一个字节发送完成后才发送下一个字节；大量 Shell 输出会占用主循环时间。</li>
+<li><code>ringbuffer.h</code> 使用 <code>uint8_t</code> 和 <code>uint32_t</code>，新工程应确保在包含该文件前或该文件内部可获得 <code>&lt;stdint.h&gt;</code> 定义。建议在头文件中显式包含 <code>&lt;stdint.h&gt;</code>。</li>
+<li>RingBuffer 只保存二进制字节，不负责字符串结尾符、帧边界、校验或协议超时处理。</li>
+</ol>
+<h2 id="12-验证建议">12. 验证建议</h2>
+<h3 id="121-基础功能">12.1 基础功能</h3>
+<ol>
+<li>编译 Keil 工程，确认无 <code>ringbuffer.c</code>、头文件路径或串口 IRQ 相关错误。</li>
+<li>下载程序后打开串口终端，使用当前串口参数连接目标板。</li>
+<li>输入 <code>help</code>，确认 Shell 有响应。</li>
+<li>输入 <code>helloworld 123 tpj hm</code>，确认参数按顺序输出。</li>
+<li>输入 <code>add 12 30</code>，确认得到正确加法结果。</li>
+</ol>
+<h2 id="14-总结">14. 总结</h2>
+<p>本工程将 RingBuffer 放在 USART1 接收中断和 Letter Shell 主循环之间，实现了串口字节的先进先出缓存。移植的关键不是只复制 <code>ringbuffer.c</code> 与 <code>ringbuffer.h</code>，还需要正确配置源文件、头文件路径、串口硬件、中断回调、缓存容量和并发访问策略。对于低速命令交互，当前 128 字节方案可直接使用；对于高速、长时间阻塞或多任务系统，应进一步完善溢出统计、临界区保护和 DMA 接收机制。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://Hmtpj.github.io/tag/B5mSxLV9AN/" class="tag">
+                    技术
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://Hmtpj.github.io/post/letter-shell-shi-yong-shuo-ming/">
+                  <h3 class="post-title">
+                    Letter Shell 使用说明
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

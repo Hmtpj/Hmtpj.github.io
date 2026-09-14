@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Letter Shell 使用说明 | HM&amp;TPJ遇风</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://Hmtpj.github.io/favicon.ico?v=1789357832126">
+<link rel="stylesheet" href="https://Hmtpj.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="
+1. 工程中的 Shell 组成
+本工程将 Letter Shell 移植到 STM32F407，并使用 USART1 作为交互串口。
+
+
+
+文件
+作用
+
+
+
+
+app/main.c
+创建 Shell 对象，配置读写接口，并在裸机主循环中..." />
+    <meta name="keywords" content="技术" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://Hmtpj.github.io">
+        <img src="https://Hmtpj.github.io/images/avatar.png?v=1789357832126" class="site-logo">
+        <h1 class="site-title">HM&amp;TPJ遇风</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/Hmtpj/Hmtpj.github.io" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      学习啦
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://Hmtpj.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Letter Shell 使用说明</h2>
+            <div class="post-date">2026-09-14</div>
+            
+            <div class="post-content" v-pre>
+              <!-- more -->
+<h2 id="1-工程中的-shell-组成">1. 工程中的 Shell 组成</h2>
+<p>本工程将 Letter Shell 移植到 STM32F407，并使用 USART1 作为交互串口。</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app/main.c</code></td>
+<td>创建 Shell 对象，配置读写接口，并在裸机主循环中运行 Shell。</td>
+</tr>
+<tr>
+<td><code>driver/console/console_usart.c</code></td>
+<td>配置 USART1，提供发送函数和接收回调注册函数。</td>
+</tr>
+<tr>
+<td><code>app/commands/helloworld.c</code></td>
+<td>实现<code>helloworld</code> 示例命令。</td>
+</tr>
+<tr>
+<td><code>app/commands/add.c</code></td>
+<td>实现<code>add</code> 示例命令。</td>
+</tr>
+<tr>
+<td><code>third_lib/lettershell/shell_cmd_list.c</code></td>
+<td>使用命令表方式集中注册 Shell 命令。</td>
+</tr>
+<tr>
+<td><code>third_lib/lettershell/shell_cfg.h</code></td>
+<td>配置 Shell 功能。</td>
+</tr>
+</tbody>
+</table>
+<p>串口参数为 <code>115200-8-N-1</code>。使用串口助手连接开发板后，发送命令并以回车或换行结束即可。</p>
+<h2 id="2-letter-shell-源码移植">2. Letter Shell 源码移植</h2>
+<p>Letter Shell 的核心源码已从源码包的 <code>src</code> 目录移植到本工程的 <code>third_lib/lettershell</code> 目录。它本身与具体 MCU、串口和 RTOS 无关；本工程通过 <code>main.c</code> 中的读写函数，将它连接到 STM32F407 的 USART1。</p>
+<h3 id="21-移植文件说明">2.1 移植文件说明</h3>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>是否加入 Keil 编译</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>shell.c</code></td>
+<td>是</td>
+<td>Shell 核心，实现输入编辑、命令匹配、参数解析、历史命令和执行流程。</td>
+</tr>
+<tr>
+<td><code>shell.h</code></td>
+<td>否</td>
+<td>定义<code>Shell</code>、<code>ShellCommand</code>、核心函数和命令注册宏。</td>
+</tr>
+<tr>
+<td><code>shell_cfg.h</code></td>
+<td>否</td>
+<td>配置 Shell 的功能开关、历史记录数和缓冲区大小。</td>
+</tr>
+<tr>
+<td><code>shell_ext.c</code></td>
+<td>是</td>
+<td>提供 Shell 的扩展参数处理功能。</td>
+</tr>
+<tr>
+<td><code>shell_ext.h</code></td>
+<td>否</td>
+<td>声明扩展功能接口。</td>
+</tr>
+<tr>
+<td><code>shell_cmd_list.c</code></td>
+<td>是</td>
+<td>定义内置命令及本工程的用户命令表。</td>
+</tr>
+</tbody>
+</table>
+<p><code>shell.c</code>、<code>shell_ext.c</code> 和 <code>shell_cmd_list.c</code> 必须加入 Keil 工程并参与编译。头文件不需要单独编译，但必须能被编译器找到。</p>
+<h3 id="22-keil-配置">2.2 Keil 配置</h3>
+<p>当前工程的 Keil 配置已经包含以下头文件路径：</p>
+<pre><code class="language-text">..\firmware\cmsis\core
+..\firmware\cmsis\device
+..\firmware\driver\inc
+..\driver\console
+..\app
+..\third_lib\lettershell
+</code></pre>
+<p>从零移植时需要完成以下步骤：</p>
+<ol>
+<li>复制上述 Letter Shell 文件到工程目录。</li>
+<li>将 <code>shell.c</code>、<code>shell_ext.c</code> 和 <code>shell_cmd_list.c</code> 加入 Keil 工程。</li>
+<li>将 <code>third_lib/lettershell</code> 加入 Keil 的头文件搜索路径。</li>
+<li>在 <code>shell_cfg.h</code> 中按裸机或 RTOS 场景调整配置。</li>
+<li>在应用代码中实现 <code>shell.read</code> 和 <code>shell.write</code> 对应的硬件适配函数。</li>
+<li>调用 <code>shellInit()</code> 初始化实例，并在主循环或独立任务中调用 <code>shellTask()</code>。</li>
+</ol>
+<h3 id="23-本工程选择的命令注册方式">2.3 本工程选择的命令注册方式</h3>
+<p><code>shell_cfg.h</code> 中的配置为：</p>
+<pre><code class="language-c">#define SHELL_USING_CMD_EXPORT 0
+</code></pre>
+<p>值为 <code>0</code> 表示使用命令表方式。命令函数实现后，需要在 <code>shell_cmd_list.c</code> 中先写 <code>extern</code> 声明，再在 <code>shellCommandList[]</code> 数组中使用 <code>SHELL_CMD_ITEM()</code> 注册。</p>
+<p>这种方式适合 Keil 裸机工程，命令位置明确、无需修改链接段配置。将该宏改为 <code>1</code> 后可使用 <code>SHELL_EXPORT_CMD()</code> 分散注册命令，但必须确保 Keil 链接器正确收集 <code>shellCommand</code> 段；当前工程不建议直接切换。</p>
+<h3 id="24-shell-与硬件的连接关系">2.4 Shell 与硬件的连接关系</h3>
+<pre><code class="language-text">串口助手 -&gt; USART1 接收中断 -&gt; 接收回调 -&gt; shell.read -&gt; Letter Shell
+Letter Shell -&gt; shell.write -&gt; USART1 发送函数 -&gt; 串口助手
+</code></pre>
+<p>因此，移植到其他串口、USB 虚拟串口、网络或蓝牙时，不需要改动 Shell 核心源码；只需替换 <code>shell.read</code>、<code>shell.write</code> 和底层通信驱动。</p>
+<h2 id="3-mainc-逐步说明">3. main.c 逐步说明</h2>
+<p>当前 <code>app/main.c</code> 是 Shell 的裸机入口。它完成三件事：初始化硬件、把 Shell 与串口连接、在死循环中驱动 Shell。</p>
+<h3 id="31-头文件与全局对象">3.1 头文件与全局对象</h3>
+<p><code>main.c</code> 开头的核心代码如下：</p>
+<pre><code class="language-c">#include &quot;console_usart.h&quot;
+#include &quot;shell.h&quot;
+
+static Shell shell;
+static char shell_buffer[512];
+
+extern void board_lowlevel_init(void);
+
+static volatile uint8_t rx_data;
+</code></pre>
+<p>各项作用如下：</p>
+<table>
+<thead>
+<tr>
+<th>代码</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>console_usart.h</code></td>
+<td>使用串口初始化、发送和接收回调注册接口。</td>
+</tr>
+<tr>
+<td><code>shell.h</code></td>
+<td>使用 Letter Shell 的<code>Shell</code> 结构体和相关函数。</td>
+</tr>
+<tr>
+<td><code>static Shell shell</code></td>
+<td>定义一个 Shell 实例，保存当前命令行状态、读写接口和命令表信息。</td>
+</tr>
+<tr>
+<td><code>static char shell_buffer[512]</code></td>
+<td>Shell 的命令行编辑缓冲区。用户每输入一个字符，Shell 会将其保存到这里。</td>
+</tr>
+<tr>
+<td><code>board_lowlevel_init()</code></td>
+<td>由<code>app/board.c</code> 实现，用于开启 GPIOA 与 USART1 时钟。</td>
+</tr>
+<tr>
+<td><code>volatile uint8_t rx_data</code></td>
+<td>保存串口中断收到的一个字节。<code>volatile</code> 告诉编译器该变量会被中断异步修改。</td>
+</tr>
+</tbody>
+</table>
+<p><code>shell</code> 和 <code>shell_buffer</code> 推荐定义为静态对象，使其不占用主函数栈，并保证整个系统运行期间始终有效。</p>
+<h3 id="32-串口接收回调">3.2 串口接收回调</h3>
+<p>USART1 收到数据后会进入中断，在 <code>driver/console/console_usart.c</code> 的 <code>USART1_IRQHandler()</code> 中调用已注册的回调。<code>main.c</code> 注册的回调如下：</p>
+<pre><code class="language-c">static void usart_rx_handle(uint8_t data)
+{
+    rx_data = data;
+}
+</code></pre>
+<p>执行流程是：</p>
+<ol>
+<li>串口助手发送一个字符，例如 <code>a</code>。</li>
+<li>USART1 接收中断触发。</li>
+<li><code>USART1_IRQHandler()</code> 读取硬件接收寄存器中的 <code>a</code>。</li>
+<li>中断处理函数调用 <code>usart_rx_handle('a')</code>。</li>
+<li><code>usart_rx_handle()</code> 将字符保存到 <code>rx_data</code>。</li>
+<li>主循环中的 Shell 再从 <code>rx_data</code> 取走该字符。</li>
+</ol>
+<p>当前实现只保存一个字符，因此适合人工逐字输入命令。快速粘贴较长命令时，新的字符可能覆盖尚未处理的旧字符；此时应改用环形缓冲区。</p>
+<h3 id="33-shell-输入接口">3.3 Shell 输入接口</h3>
+<p>Shell 不会直接读取 USART 寄存器，而是通过 <code>shell.read</code> 调用下面的函数：</p>
+<pre><code class="language-c">static signed short _shell_read(char *data, unsigned short len)
+{
+    if (rx_data != 0)
+    {
+        *data = rx_data;
+        rx_data = 0;
+        return 1;
+    }
+    return 0;
+}
+</code></pre>
+<p>这段代码的含义是：</p>
+<ol>
+<li>判断 <code>rx_data</code> 是否有待处理字符。</li>
+<li>有数据时，将字符写入 Shell 提供的 <code>data</code> 地址。</li>
+<li>将 <code>rx_data</code> 清零，表示该字符已经被取走。</li>
+<li>返回 <code>1</code>，表示本次成功读取一个字节。</li>
+<li>没有数据时返回 <code>0</code>，让 <code>shellTask()</code> 立即返回，不能在此处阻塞等待。</li>
+</ol>
+<p><code>len</code> 是 Shell 希望读取的最大长度。当前工程的接收缓存每次只保存一个字符，因此实际只读取一个字节。</p>
+<h3 id="34-shell-输出接口">3.4 Shell 输出接口</h3>
+<p>Shell 需要向终端打印提示符、回显输入和命令结果时，会通过 <code>shell.write</code> 调用下面的函数：</p>
+<pre><code class="language-c">static signed short _shell_write(char *data, unsigned short len)
+{
+    for (unsigned short i = 0; i &lt; len; i++)
+    {
+        usart_send((uint8_t)data[i]);
+    }
+    return 0;
+}
+</code></pre>
+<p>执行过程为：</p>
+<ol>
+<li>Shell 将待输出内容的首地址和长度传入 <code>_shell_write()</code>。</li>
+<li>函数逐个取出字符。</li>
+<li>每个字符调用 <code>usart_send()</code>，由 USART1 发送到串口助手。</li>
+<li>因此 <code>shellPrint()</code>、<code>shellWriteString()</code>、帮助信息和命令提示符都会显示在串口助手中。</li>
+</ol>
+<h3 id="35-main-初始化顺序">3.5 main() 初始化顺序</h3>
+<p><code>main()</code> 中的实际执行顺序如下：</p>
+<pre><code class="language-c">int main(void)
+{
+    board_lowlevel_init();
+    usart_init();
+    usart_recv_callback_register(usart_rx_handle);
+
+    shell.read = _shell_read;
+    shell.write = _shell_write;
+    shellInit(&amp;shell, shell_buffer, sizeof(shell_buffer));
+
+    while (1)
+    {
+        shellTask(&amp;shell);
+    }
+}
+</code></pre>
+<p>必须按此顺序执行：</p>
+<ol>
+<li><code>board_lowlevel_init()</code>：开启 USART1 使用的 GPIOA、USART1 时钟，并设置 NVIC 优先级分组。</li>
+<li><code>usart_init()</code>：配置 PA9 为 USART1 发送引脚、PA10 为 USART1 接收引脚，配置波特率为 115200，并开启 USART1 接收中断。</li>
+<li><code>usart_recv_callback_register(usart_rx_handle)</code>：注册接收回调。完成这一步后，接收到的字符才能传递给 <code>rx_data</code>。</li>
+<li><code>shell.read = _shell_read</code>：指定 Shell 从哪里读取用户输入。</li>
+<li><code>shell.write = _shell_write</code>：指定 Shell 将输出发送到哪里。</li>
+<li><code>shellInit(&amp;shell, shell_buffer, sizeof(shell_buffer))</code>：初始化 Shell 内部状态、绑定命令行缓冲区，并读取 <code>shell_cmd_list.c</code> 中的命令表。</li>
+<li><code>while (1)</code>：持续调用 <code>shellTask(&amp;shell)</code>，让 Shell 处理串口输入。</li>
+</ol>
+<p>如果漏掉第 4 步或第 5 步，Shell 没有输入或输出通道；如果漏掉第 6 步，Shell 内部状态未初始化；如果漏掉第 7 步，串口收到的数据不会被解析为命令。</p>
+<h3 id="36-从输入到执行命令的数据流">3.6 从输入到执行命令的数据流</h3>
+<p>以输入 <code>add 1 2</code> 并按下回车为例：</p>
+<pre><code class="language-text">串口助手
+  -&gt; USART1 接收中断
+  -&gt; usart_rx_handle()
+  -&gt; rx_data
+  -&gt; _shell_read()
+  -&gt; shellTask()
+  -&gt; Shell 命令解析
+  -&gt; shell_cmd_list.c 中的 add 命令
+  -&gt; cmd_add()
+  -&gt; _shell_write()
+  -&gt; 串口助手显示结果
+</code></pre>
+<p><code>shellTask()</code> 每次最多处理已经接收到的数据。依次输入 <code>a</code>、<code>d</code>、<code>d</code>、空格、<code>1</code>、空格、<code>2</code>、回车后，Shell 会在回车时将整行拆分为参数数组，并调用注册的 <code>cmd_add(argc, argv)</code> 函数。</p>
+<h2 id="4-初始化流程">4. 初始化流程</h2>
+<p>当前裸机工程的初始化顺序如下：</p>
+<pre><code class="language-c">board_lowlevel_init();
+usart_init();
+usart_recv_callback_register(usart_rx_handle);
+
+shell.read = _shell_read;
+shell.write = _shell_write;
+shellInit(&amp;shell, shell_buffer, sizeof(shell_buffer));
+</code></pre>
+<p>各步骤说明：</p>
+<ol>
+<li><code>board_lowlevel_init()</code> 开启 GPIOA、USART1 时钟并设置中断优先级分组。</li>
+<li><code>usart_init()</code> 配置 USART1 引脚、波特率和接收中断。</li>
+<li><code>usart_recv_callback_register()</code> 注册串口接收回调；每收到一个字节，回调会保存该字节。</li>
+<li>为 <code>shell.read</code> 和 <code>shell.write</code> 分别绑定输入、输出函数。</li>
+<li><code>shellInit()</code> 初始化 Shell，第二个参数为命令行缓冲区，第三个参数为缓冲区大小。</li>
+</ol>
+<p><code>shell_buffer</code> 当前大小为 512 字节，单条命令及其参数总长度不要超过该值。</p>
+<h2 id="5-主循环运行方式">5. 主循环运行方式</h2>
+<p>裸机模式下，在主循环中持续调用 <code>shellTask()</code>：</p>
+<pre><code class="language-c">while (1)
+{
+    shellTask(&amp;shell);
+}
+</code></pre>
+<p><code>shellTask()</code> 会调用 <code>shell.read</code> 获取串口数据，完成编辑、历史命令、补全和命令解析。当前 <code>SHELL_TASK_WHILE</code> 配置为 <code>0</code>，因此必须在主循环中反复调用它。</p>
+<h2 id="6-串口读写接口">6. 串口读写接口</h2>
+<p>Shell 不直接依赖硬件串口，而是通过两个回调函数通信：</p>
+<pre><code class="language-c">static signed short _shell_read(char *data, unsigned short len);
+static signed short _shell_write(char *data, unsigned short len);
+</code></pre>
+<h3 id="61-输入接口">6.1 输入接口</h3>
+<p><code>_shell_read()</code> 从串口接收缓存中取出数据并写入 <code>data</code>。有数据时返回实际读取字节数，无数据时返回 <code>0</code>，不能阻塞等待数据。</p>
+<p>当前工程使用单字节变量保存中断接收的数据，适合手动输入命令。若需要接收大量连续数据，应改为环形缓冲区，避免后到的数据覆盖前一个未处理的字符。</p>
+<h3 id="62-输出接口">6.2 输出接口</h3>
+<p><code>_shell_write()</code> 将 Shell 输出内容逐字节调用 <code>usart_send()</code> 发送到串口。命令函数输出内容时，优先使用 Shell 自身的输出函数：</p>
+<pre><code class="language-c">shellPrint(shellGetCurrent(), &quot;value: %d\r\n&quot;, value);
+shellWriteString(shellGetCurrent(), &quot;done\r\n&quot;);
+</code></pre>
+<p>不建议在命令函数中直接使用 <code>printf()</code>，否则输出重定向方式可能与 Shell 串口不一致。</p>
+<h2 id="7-已注册命令">7. 已注册命令</h2>
+<p>连接串口后输入 <code>help</code> 可查看命令列表。当前用户命令如下：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>helloworld</code></td>
+<td><code>helloworld 123 tpj</code></td>
+<td>输出问候语并打印参数数组。</td>
+</tr>
+<tr>
+<td><code>add</code></td>
+<td><code>add 12 30</code></td>
+<td>计算两个整数之和。</td>
+</tr>
+<tr>
+<td><code>help</code></td>
+<td><code>help add</code></td>
+<td>查看全部命令或指定命令的帮助。</td>
+</tr>
+<tr>
+<td><code>clear</code></td>
+<td><code>clear</code></td>
+<td>清空终端显示。</td>
+</tr>
+</tbody>
+</table>
+<p>命令以空格分隔参数。以 <code>helloworld 123 tpj</code> 为例：</p>
+<figure data-type="image" tabindex="1"><img src="assets/1785386274093.png" alt="1785386274093" loading="lazy"></figure>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>argv[0]</code></td>
+<td><code>helloworld</code></td>
+</tr>
+<tr>
+<td><code>argv[1]</code></td>
+<td><code>123</code></td>
+</tr>
+<tr>
+<td><code>argv[2]</code></td>
+<td><code>tpj</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="8-新增一个命令">8. 新增一个命令</h2>
+<p>本工程的 <code>SHELL_USING_CMD_EXPORT</code> 配置为 <code>0</code>，因此采用命令表注册方式。新增命令包含以下三步。</p>
+<h3 id="81-编写命令函数">8.1 编写命令函数</h3>
+<p>在 <code>app/commands</code> 下创建源文件，例如 <code>example.c</code>：</p>
+<pre><code class="language-c">#include &quot;shell.h&quot;
+
+int cmd_example(int argc, char *argv[])
+{
+    if (argc != 2)
+    {
+        shellPrint(shellGetCurrent(), &quot;usage: example &lt;value&gt;\r\n&quot;);
+        return -1;
+    }
+
+    shellPrint(shellGetCurrent(), &quot;value: %s\r\n&quot;, argv[1]);
+    return 0;
+}
+</code></pre>
+<p>读取 <code>argv[1]</code> 等参数前必须先检查 <code>argc</code>，防止参数不足导致越界访问。</p>
+<h3 id="82-在命令表中声明函数">8.2 在命令表中声明函数</h3>
+<p>打开 <code>third_lib/lettershell/shell_cmd_list.c</code>，在已有用户命令声明后添加：</p>
+<pre><code class="language-c">extern int cmd_example(int argc, char *argv[]);
+</code></pre>
+<h3 id="83-注册命令">8.3 注册命令</h3>
+<p>在同一文件的 <code>shellCommandList[]</code> 数组末尾添加：</p>
+<pre><code class="language-c">SHELL_CMD_ITEM(
+    SHELL_CMD_PERMISSION(0) |
+    SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN) |
+    SHELL_CMD_DISABLE_RETURN,
+    example,
+    cmd_example,
+    example command),
+</code></pre>
+<p>最后将 <code>example.c</code> 加入 Keil 工程的 <code>app/commands</code> 分组，重新编译下载。串口输入 <code>example test</code> 即可执行。</p>
+<h2 id="9-常用配置">9. 常用配置</h2>
+<p>配置文件为 <code>third_lib/lettershell/shell_cfg.h</code>。</p>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th style="text-align:right">当前值</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SHELL_TASK_WHILE</code></td>
+<td style="text-align:right"><code>0</code></td>
+<td>裸机模式，由主循环调用<code>shellTask()</code>。</td>
+</tr>
+<tr>
+<td><code>SHELL_USING_CMD_EXPORT</code></td>
+<td style="text-align:right"><code>0</code></td>
+<td>使用<code>shell_cmd_list.c</code> 命令表注册命令。</td>
+</tr>
+<tr>
+<td><code>SHELL_HISTORY_MAX_NUMBER</code></td>
+<td style="text-align:right"><code>5</code></td>
+<td>保存最近 5 条历史命令。</td>
+</tr>
+<tr>
+<td><code>SHELL_PRINT_BUFFER</code></td>
+<td style="text-align:right"><code>512</code></td>
+<td>格式化输出缓冲区大小。</td>
+</tr>
+<tr>
+<td><code>SHELL_ENTER_LF</code></td>
+<td style="text-align:right"><code>1</code></td>
+<td>支持换行符结束命令。</td>
+</tr>
+<tr>
+<td><code>SHELL_ENTER_CR</code></td>
+<td style="text-align:right"><code>1</code></td>
+<td>支持回车符结束命令。</td>
+</tr>
+</tbody>
+</table>
+<p>当前工程建议保持 <code>SHELL_USING_CMD_EXPORT</code> 为 <code>0</code>。切换为 <code>1</code> 后需要处理 Keil 链接器的 <code>shellCommand</code> 段，不能只修改配置宏。</p>
+<h2 id="10-rtos-使用方式">10. RTOS 使用方式</h2>
+<p>使用 FreeRTOS 等系统时，可将 <code>SHELL_TASK_WHILE</code> 设置为 <code>1</code>，然后将 Shell 放入独立任务：</p>
+<pre><code class="language-c">shell.read = _shell_read;
+shell.write = _shell_write;
+shellInit(&amp;shell, shell_buffer, sizeof(shell_buffer));
+
+xTaskCreate(shellTask, &quot;shell&quot;, 256, &amp;shell, 5, 0);
+</code></pre>
+<p>启用后 <code>shellTask()</code> 自身会循环执行。若串口接收中断和 Shell 任务存在并发访问，应同时实现 <code>SHELL_USING_LOCK</code> 相关配置，并使用适合 RTOS 的接收队列或环形缓冲区。</p>
+<h2 id="11-常见问题">11. 常见问题</h2>
+<h3 id="输入命令后没有反应">输入命令后没有反应</h3>
+<p>检查串口助手波特率是否为 115200，检查发送结束符是否包含回车或换行，并确认主循环仍在调用 <code>shellTask()</code>。</p>
+<h3 id="help-中没有新命令"><code>help</code> 中没有新命令</h3>
+<p>检查命令函数是否已声明并加入 <code>shellCommandList[]</code>，并确认新增的 <code>.c</code> 文件已加入 Keil 工程后重新编译。</p>
+<h3 id="快速粘贴命令时出现字符丢失">快速粘贴命令时出现字符丢失</h3>
+<p>当前单字节接收缓存可能被覆盖。应将 <code>rx_data</code> 改为中断写入、主循环读取的环形缓冲区。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://Hmtpj.github.io/tag/B5mSxLV9AN/" class="tag">
+                    技术
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://Hmtpj.github.io/post/qian-ru-shi-day2-c-yu-yan-gao-ji-1/">
+                  <h3 class="post-title">
+                    嵌入式day2——C语言高级1
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>TLSF 内存管理使用说明 | HM&amp;TPJ遇风</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://Hmtpj.github.io/favicon.ico?v=1789357832126">
+<link rel="stylesheet" href="https://Hmtpj.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="TLSF 内存管理使用说明
+
+tlsf的断言__aeabi_assert是失败要考虑怎么补充
+
+1. 作用
+TLSF（Two Level Segregated Fit）是适合嵌入式系统的动态内存分配器。它从一块预先提供的连续 RAM 中分配..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://Hmtpj.github.io">
+        <img src="https://Hmtpj.github.io/images/avatar.png?v=1789357832126" class="site-logo">
+        <h1 class="site-title">HM&amp;TPJ遇风</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/Hmtpj/Hmtpj.github.io" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      学习啦
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://Hmtpj.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">TLSF 内存管理使用说明</h2>
+            <div class="post-date">2026-09-14</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="tlsf-内存管理使用说明">TLSF 内存管理使用说明</h1>
+<blockquote>
+<p>tlsf的断言<code>__aeabi_assert</code>是失败要考虑怎么补充</p>
+</blockquote>
+<h2 id="1-作用">1. 作用</h2>
+<p>TLSF（Two Level Segregated Fit）是适合嵌入式系统的动态内存分配器。它从一块预先提供的连续 RAM 中分配和回收内存，不依赖 C 库的 <code>malloc</code> 和 <code>free</code>。</p>
+<p>本工程已移植 TLSF 3.1，源码位于：</p>
+<ul>
+<li><code>third_lib/tlsf/tlsf.c</code></li>
+<li><code>third_lib/tlsf/tlsf.h</code></li>
+</ul>
+<p>当前实现使用一块 64 KiB 的静态数组作为内存池，内存池管理与业务代码隔离在 <code>app/mem_mgmt.c</code> 中。</p>
+<h2 id="2-当前工程的结构">2. 当前工程的结构</h2>
+<pre><code class="language-text">app/main.c
+    └─ init_dynamic_memory_pool()    初始化 TLSF 内存池
+
+app/mem_mgmt.c
+    ├─ dyl_mem_pool[64 * 1024]       实际提供给 TLSF 的 64 KiB RAM
+    ├─ tlsf                          TLSF 控制句柄，仅本文件可见
+    ├─ malloc_dynamic_memory()       分配接口
+    └─ free_dynamic_memory()         释放接口
+
+app/commands/mem.c
+    └─ cmd_mem                       Shell 分配、释放演示命令
+</code></pre>
+<p><code>dyl_mem_pool</code> 和 <code>tlsf</code> 都是 <code>static</code>，其他源文件不能直接访问。这能避免业务代码错误地操作内存池或使用未初始化的句柄。</p>
+<h2 id="3-工程初始化">3. 工程初始化</h2>
+<p><code>app/main.c</code> 在进入主循环前调用：</p>
+<pre><code class="language-c">/* 初始化动态内存池，必须在任何分配操作之前执行 */
+init_dynamic_memory_pool();
+</code></pre>
+<p>实际初始化逻辑位于 <code>app/mem_mgmt.c</code>：</p>
+<pre><code class="language-c">/* 静态数组提供给 TLSF 管理，大小为 64 KiB */
+static uint8_t dyl_mem_pool[64 * 1024];
+
+/* TLSF 控制句柄，仅当前源文件使用 */
+static tlsf_t tlsf;
+
+/* 创建 TLSF 控制结构，并将静态数组同时作为首个内存池 */
+void init_dynamic_memory_pool(void)
+{
+    tlsf = tlsf_create_with_pool(dyl_mem_pool, sizeof(dyl_mem_pool));
+
+    /* 创建失败时停止运行，防止后续继续使用无效句柄 */
+    if (tlsf == NULL)
+    {
+        while (1)
+        {
+        }
+    }
+}
+</code></pre>
+<p><code>tlsf_create_with_pool</code> 会在 <code>dyl_mem_pool</code> 开头放置 TLSF 控制信息，剩余区域才可用于动态分配。因此可分配总量小于 64 KiB，且每次分配还会有少量块管理开销。</p>
+<h2 id="4-业务代码的标准用法">4. 业务代码的标准用法</h2>
+<p>业务代码包含 <code>main.h</code> 后，调用工程封装接口即可：</p>
+<pre><code class="language-c">#include &quot;main.h&quot;
+
+void example(void)
+{
+    uint8_t *buffer;
+
+    /* 从 TLSF 内存池申请 128 字节 */
+    buffer = (uint8_t *)malloc_dynamic_memory(128);
+    if (buffer == NULL)
+    {
+        /* 申请失败时执行降级处理，不能继续访问 buffer */
+        return;
+    }
+
+    /* 此处使用 buffer 指向的 128 字节有效区域 */
+
+    /* 使用结束后原样释放，并避免再次使用 buffer */
+    free_dynamic_memory(buffer);
+    buffer = NULL;
+}
+</code></pre>
+<p>分配接口为：</p>
+<pre><code class="language-c">void *malloc_dynamic_memory(size_t bytes);
+</code></pre>
+<ul>
+<li><code>bytes</code>：申请的字节数，应大于 0。</li>
+<li>成功：返回可读写内存的首地址。</li>
+<li>失败：返回 <code>NULL</code>，常见原因是剩余空间不足或碎片无法满足请求。</li>
+</ul>
+<p>释放接口为：</p>
+<pre><code class="language-c">void free_dynamic_memory(void *ptr);
+</code></pre>
+<ul>
+<li><code>ptr</code> 必须是 <code>malloc_dynamic_memory</code> 返回且尚未释放的地址。</li>
+<li>传入 <code>NULL</code> 是安全的，TLSF 不执行操作。</li>
+<li>一块内存只能释放一次；释放后不得继续读写，也不能再次释放。</li>
+</ul>
+<h3 id="42-原生-tlsf-接口直接使用">4.2 原生 TLSF 接口直接使用</h3>
+<p>如果移植到其他工程，或需要自行管理多个内存池，可直接调用 <code>tlsf.h</code> 提供的原生接口。下面是单内存池的最小完整用法：</p>
+<pre><code class="language-c">#include &lt;stdint.h&gt;
+#include &quot;tlsf.h&quot;
+
+/* 静态数组作为 TLSF 的控制区和首个内存池，生命周期覆盖整个程序 */
+static uint8_t tlsf_memory[64 * 1024];
+
+/* 保存创建成功后的 TLSF 句柄 */
+static tlsf_t tlsf_handle;
+
+/* 在任何动态内存操作前执行一次初始化 */
+static int tlsf_memory_init(void)
+{
+    /* 创建控制结构，并把 tlsf_memory 加入为首个内存池 */
+    tlsf_handle = tlsf_create_with_pool(tlsf_memory, sizeof(tlsf_memory));
+
+    /* 返回初始化结果，调用方必须检查 */
+    return (tlsf_handle != NULL) ? 0 : -1;
+}
+
+void example(void)
+{
+    uint8_t *buffer;
+
+    /* 从 tlsf_handle 对应的内存池申请 128 字节 */
+    buffer = (uint8_t *)tlsf_malloc(tlsf_handle, 128);
+    if (buffer == NULL)
+    {
+        /* 内存不足时不能访问 buffer */
+        return;
+    }
+
+    /* 此处只能访问 buffer 的 0 至 127 字节 */
+
+    /* 必须使用同一个 tlsf_handle 释放该内存 */
+    tlsf_free(tlsf_handle, buffer);
+    buffer = NULL;
+}
+</code></pre>
+<p>调用顺序必须是：<code>tlsf_create_with_pool</code> -&gt; <code>tlsf_malloc</code> / <code>tlsf_memalign</code> / <code>tlsf_realloc</code> -&gt; <code>tlsf_free</code>。初始化只执行一次；应用运行期间不能再次对同一块内存重复创建 TLSF。</p>
+<p>原生接口和当前工程封装接口不能交叉配对：</p>
+<ul>
+<li><code>malloc_dynamic_memory</code> 返回的指针必须用 <code>free_dynamic_memory</code> 释放。</li>
+<li><code>tlsf_malloc(tlsf_handle, ...)</code> 返回的指针必须用 <code>tlsf_free(tlsf_handle, ...)</code> 释放。</li>
+<li>禁止用一个 TLSF 句柄释放另一个 TLSF 句柄申请的指针，也禁止用 C 库的 <code>free</code> 释放 TLSF 指针。</li>
+</ul>
+<h2 id="5-shell-演示命令">5. Shell 演示命令</h2>
+<p><code>app/commands/mem.c</code> 提供 <code>mem</code> 命令。输入：</p>
+<pre><code class="language-text">mem 128
+</code></pre>
+<p>命令会申请 128 字节，打印结果和地址，然后立即释放该内存。它只用于验证基本分配流程，不能用于观察长期内存占用，因为命令结束前已释放。</p>
+<p>当前命令直接使用 <code>atoi(argv[1])</code>，调用时必须提供正整数参数。缺少参数、传入负数或非数字字符串可能产生非预期结果，业务代码应先检查参数数量和取值范围。</p>
+<h2 id="6-原生-tlsf-接口">6. 原生 TLSF 接口</h2>
+<p>除工程封装外，<code>tlsf.h</code> 还提供下列接口。扩展功能时可使用，但必须统一管理 <code>tlsf_t</code> 句柄，并避免和现有封装混用不受控的内存池。</p>
+<table>
+<thead>
+<tr>
+<th>接口</th>
+<th>用途</th>
+<th>注意事项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tlsf_create(mem)</code></td>
+<td>在指定内存中创建控制结构</td>
+<td>仅创建控制结构，之后需调用<code>tlsf_add_pool</code> 添加内存池。</td>
+</tr>
+<tr>
+<td><code>tlsf_create_with_pool(mem, bytes)</code></td>
+<td>创建控制结构并添加首个内存池</td>
+<td>当前工程使用此接口。</td>
+</tr>
+<tr>
+<td><code>tlsf_add_pool(tlsf, mem, bytes)</code></td>
+<td>增加一块独立内存池</td>
+<td>内存首地址必须满足<code>tlsf_align_size()</code> 对齐要求。</td>
+</tr>
+<tr>
+<td><code>tlsf_remove_pool(tlsf, pool)</code></td>
+<td>移除一个内存池</td>
+<td>移除前必须释放该池内所有已分配块。</td>
+</tr>
+<tr>
+<td><code>tlsf_malloc(tlsf, bytes)</code></td>
+<td>分配内存</td>
+<td>返回值必须判空。</td>
+</tr>
+<tr>
+<td><code>tlsf_memalign(tlsf, align, bytes)</code></td>
+<td>按指定边界对齐分配</td>
+<td><code>align</code> 必须是 2 的整数次幂。</td>
+</tr>
+<tr>
+<td><code>tlsf_realloc(tlsf, ptr, size)</code></td>
+<td>调整已分配内存大小</td>
+<td>可能返回新地址，必须用临时指针接收。</td>
+</tr>
+<tr>
+<td><code>tlsf_free(tlsf, ptr)</code></td>
+<td>释放内存</td>
+<td><code>ptr</code> 必须来自同一个 TLSF 句柄。</td>
+</tr>
+<tr>
+<td><code>tlsf_check(tlsf)</code></td>
+<td>检查所有空闲链表一致性</td>
+<td>返回非 0 表示发现内部结构异常。</td>
+</tr>
+<tr>
+<td><code>tlsf_check_pool(pool)</code></td>
+<td>检查一个内存池的物理块连续性</td>
+<td>适合定位越界写或重复释放后的损坏。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="61-对齐分配示例">6.1 对齐分配示例</h3>
+<p>DMA、缓存或外设访问可能要求缓冲区按特定边界对齐。例如申请 256 字节对齐的 1024 字节缓冲区：</p>
+<pre><code class="language-c">/* 对齐值为 2 的整数次幂，满足 DMA 缓冲区对齐要求 */
+void *dma_buffer = tlsf_memalign(tlsf, 256, 1024);
+
+/* 申请成功后按普通 TLSF 内存释放 */
+if (dma_buffer != NULL)
+{
+    tlsf_free(tlsf, dma_buffer);
+}
+</code></pre>
+<p>当前工程的 <code>tlsf</code> 是 <code>mem_mgmt.c</code> 的私有变量，因此若要开放此功能，建议新增 <code>malloc_dynamic_memory_aligned</code> 封装函数，而不是在其他文件定义另一个同名或重复的句柄。</p>
+<h3 id="62-realloc-的正确用法">6.2 <code>realloc</code> 的正确用法</h3>
+<p><code>tlsf_realloc</code> 可能原地扩展，也可能申请新块、复制原数据并释放旧块。不能直接覆盖原指针，否则申请失败时会丢失旧地址。</p>
+<pre><code class="language-c">/* 临时指针用于保留 realloc 失败时的原始内存地址 */
+void *new_buffer = tlsf_realloc(tlsf, old_buffer, new_size);
+
+if (new_buffer != NULL)
+{
+    old_buffer = new_buffer;
+}
+else
+{
+    /* old_buffer 仍有效，可继续使用或在合适时机释放 */
+}
+</code></pre>
+<h2 id="7-内存池规划要求">7. 内存池规划要求</h2>
+<h3 id="71-内存池必须长期有效">7.1 内存池必须长期有效</h3>
+<p>内存池不能定义为初始化函数的局部数组，因为函数返回后局部变量失效。应放在静态区、全局区或一段专用 RAM 区。本工程的 <code>static uint8_t dyl_mem_pool[64 * 1024]</code> 符合该要求。</p>
+<h3 id="72-内存池大小">7.2 内存池大小</h3>
+<p>TLSF 会占用控制结构和块头，内存池实际可用容量小于数组容量。可通过下列接口了解开销：</p>
+<pre><code class="language-c">/* 查询 TLSF 控制结构、内存池块头和单次分配块头的开销 */
+size_t control_bytes = tlsf_size();
+size_t pool_overhead = tlsf_pool_overhead();
+size_t alloc_overhead = tlsf_alloc_overhead();
+</code></pre>
+<p>不要以为 64 KiB 内存池一定可以分配一个完整的 64 KiB 块；应预留管理开销，并为其他同时存在的动态对象留出空间。</p>
+<h3 id="73-对齐">7.3 对齐</h3>
+<p>TLSF 在本 32 位 STM32 工程中通常按 4 字节对齐。不要硬编码该数值，使用下列接口获取实际要求：</p>
+<pre><code class="language-c">/* 查询当前 TLSF 版本的最小对齐字节数 */
+size_t align_bytes = tlsf_align_size();
+</code></pre>
+<p>静态数组通常自然满足对齐；如果改为链接脚本分配、外部 SRAM 或自定义地址，必须确认首地址满足该对齐要求。</p>
+<h2 id="8-中断与多任务注意事项">8. 中断与多任务注意事项</h2>
+<p>当前 TLSF 源码本身不带锁，<code>tlsf_malloc</code>、<code>tlsf_free</code>、<code>tlsf_realloc</code> 和内存池增删不能在不同执行上下文中并发调用。</p>
+<ul>
+<li>裸机：主循环使用 TLSF 时，ISR 中不要调用 TLSF 分配或释放。</li>
+<li>RTOS：多个任务需要调用时，用互斥锁保护所有 TLSF 操作。</li>
+<li>中断：中断服务函数只传递事件、数据或通知任务；由任务统一分配和释放内存。</li>
+<li>禁止在持有互斥锁时调用会再次触发 TLSF 的未知回调，防止死锁。</li>
+</ul>
+<h2 id="9-断言与故障定位">9. 断言与故障定位</h2>
+<p>TLSF 源码默认使用 <code>assert</code> 检查内部不变量。在 ARMCC/Keil 精简运行库配置下，可能出现：</p>
+<pre><code class="language-text">Undefined symbol __aeabi_assert (referred from tlsf.o)
+</code></pre>
+<p>本工程已在 <code>app/main.c</code> 中提供 <code>__aeabi_assert</code>：</p>
+<pre><code class="language-c">/* ARM EABI 断言失败处理函数 */
+void __aeabi_assert(const char *expr, const char *file, int line)
+{
+    /* 避免未使用参数产生编译警告 */
+    (void)expr;
+    (void)file;
+    (void)line;
+
+    /* 断言失败后停止运行，便于调试定位问题 */
+    while (1)
+    {
+    }
+}
+</code></pre>
+<p>该函数只能定义一次，不能加 <code>static</code>。调试时在函数入口或死循环处设置断点，查看 <code>expr</code>、<code>file</code>、<code>line</code> 即可定位断言位置。断言被触发通常意味着：重复释放、释放非法地址、越界写、内存池被破坏，或对齐参数错误。</p>
+<p>还可在关键测试流程后检查：</p>
+<pre><code class="language-c">/* 返回非 0 时说明 TLSF 内部结构已损坏 */
+if (tlsf_check(tlsf) != 0)
+{
+    /* 在此处设置断点定位首次发现异常的位置 */
+    while (1)
+    {
+    }
+}
+</code></pre>
+<p>由于当前 <code>tlsf</code> 未对外暴露，若要在业务代码中调用检查接口，应在 <code>mem_mgmt.c</code> 增加统一的检查封装函数。</p>
+<h2 id="10-重写malloc和free更加方便使用">10. 重写malloc和free更加方便使用</h2>
+<pre><code class="language-c">void *malloc(size_t size)
+{
+    return malloc_dynamic_memory(size);
+}
+void free(void *ptr)
+{
+    free_dynamic_memory(ptr);
+}
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://Hmtpj.github.io/post/ringbuffer-yi-zhi-yu-shi-yong-shuo-ming/">
+                  <h3 class="post-title">
+                    RingBuffer 移植与使用说明
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
